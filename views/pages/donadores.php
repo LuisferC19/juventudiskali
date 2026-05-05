@@ -19,14 +19,13 @@ require_once 'views/layouts/header.php';
           <h3>Donadores</h3>
           <div class="toolbar">
             <input type="text" class="search-input" placeholder="Buscar donador..." oninput="filtrarTabla(this,'tabla-donadores')">
-            <select style="width:120px;">
-              <option value="">Todos</option>
-              <option>Física</option>
-              <option>Moral</option>
-            </select>
-            <button class="btn btn-primary" onclick="openModal('modal-donador')">+ Nuevo donador</button>
+            <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=crear" class="btn btn-primary">+ Nuevo donador</a>
           </div>
         </div>
+
+        <?php if (!empty($mensaje)): ?>
+          <div class="alert alert-success" role="alert"><?= htmlspecialchars($mensaje) ?></div>
+        <?php endif; ?>
 
         <table id="tabla-donadores">
           <thead>
@@ -39,65 +38,26 @@ require_once 'views/layouts/header.php';
               <th>Puntos</th>
               <th>Nivel</th>
               <th>Activo</th>
-              <th></th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>#D01</td>
-              <td>María García López</td>
-              <td>Física</td>
-              <td>maria@ejemplo.com</td>
-              <td>222-100-0001</td>
-              <td>340</td>
-              <td><span class="badge badge-amber">Plata</span></td>
-              <td><span class="badge badge-green">Sí</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="openModal('modal-reconocimiento')">Reconocimiento</button></td>
-            </tr>
-            <tr>
-              <td>#D02</td>
-              <td>Empresa Alfa S.A.</td>
-              <td>Moral</td>
-              <td>contacto@alfa.com</td>
-              <td>222-200-0002</td>
-              <td>1,200</td>
-              <td><span class="badge badge-blue">Oro</span></td>
-              <td><span class="badge badge-green">Sí</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="openModal('modal-reconocimiento')">Reconocimiento</button></td>
-            </tr>
-            <tr>
-              <td>#D03</td>
-              <td>Luis Torres Reyes</td>
-              <td>Física</td>
-              <td>luis@ejemplo.com</td>
-              <td>222-300-0003</td>
-              <td>85</td>
-              <td><span class="badge badge-gray">Bronce</span></td>
-              <td><span class="badge badge-green">Sí</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="openModal('modal-reconocimiento')">Reconocimiento</button></td>
-            </tr>
-            <tr>
-              <td>#D04</td>
-              <td>Comercial Beta S.C.</td>
-              <td>Moral</td>
-              <td>info@beta.com</td>
-              <td>222-400-0004</td>
-              <td>2,350</td>
-              <td><span class="badge badge-pink">Diamante</span></td>
-              <td><span class="badge badge-green">Sí</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="openModal('modal-reconocimiento')">Reconocimiento</button></td>
-            </tr>
-            <tr>
-              <td>#D05</td>
-              <td>Ana Ruiz Morales</td>
-              <td>Física</td>
-              <td>ana@ejemplo.com</td>
-              <td>222-500-0005</td>
-              <td>45</td>
-              <td><span class="badge badge-gray">Bronce</span></td>
-              <td><span class="badge badge-red">No</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="openModal('modal-reconocimiento')">Reconocimiento</button></td>
-            </tr>
+            <?php foreach ($donadores as $donador): ?>
+              <tr>
+                <td><?= e((string) $donador['id_donador']) ?></td>
+                <td><?= e($donador['nombre_completo']) ?></td>
+                <td><?= e(ucfirst($donador['tipo_persona'])) ?></td>
+                <td><?= e($donador['email']) ?></td>
+                <td><?= e($donador['telefono'] ?? '-') ?></td>
+                <td><?= e((string) $donador['puntos_acumulados']) ?></td>
+                <td><?= e($donador['nivel'] ?? '—') ?></td>
+                <td><?= $donador['activo'] ? 'Sí' : 'No' ?></td>
+                <td>
+                  <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=editar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-secondary btn-sm">Editar</a>
+                  <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este donador?');">Eliminar</a>
+                </td>
+              </tr>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>
