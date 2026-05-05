@@ -27,9 +27,13 @@ class DonadoresController {
                 $this->guardarNuevo();
             } elseif ($accion === 'editar' && $id) {
                 $this->guardarEdicion($id);
-            } elseif ($accion === 'eliminar' && $id) {
-                $this->eliminarDonador($id);
             }
+            return;
+        }
+
+        // Permitir eliminar donador también con GET para la interfaz actual
+        if ($accion === 'eliminar' && $id) {
+            $this->eliminarDonador($id);
             return;
         }
 

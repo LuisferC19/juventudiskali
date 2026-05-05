@@ -45,8 +45,8 @@ switch ($pagina) {
         break;
 
     case 'donadores':
-        require_once 'controllers/DashboardController.php';
-        (new DashboardController())->donadores();
+        require_once 'controllers/DonadoresController.php';
+        (new DonadoresController($conexion))->index();
         break;
 
     case 'donaciones':
@@ -55,8 +55,8 @@ switch ($pagina) {
         break;
 
     case 'beneficiarios':
-        require_once 'controllers/DashboardController.php';
-        (new DashboardController())->beneficiarios();
+        require_once 'controllers/BeneficiariosController.php';
+        (new BeneficiariosController($conexion))->index();
         break;
 
     case 'entregas':

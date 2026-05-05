@@ -10,10 +10,10 @@ define('APP_ANIO',    '2026');
 define('ADMIN_NOMBRE','Administrador Iskalli');
 define('ADMIN_ROL',   'Administrador');
 
-// ✅ BASE_URL = nombre exacto de tu carpeta en www/
-// Tu carpeta se llama: juvetud_iskali.io
-// Por eso accedes en: localhost:8080/juvetud_iskali.io/
-define('BASE_URL', '/juvetud_iskali.io');
+// ✅ BASE_URL debe coincidir con el nombre de la carpeta en www/
+// En este proyecto la carpeta es: juventudiskali
+// Por eso se usa: localhost/juventudiskali
+define('BASE_URL', '/juventudiskali');
 
 date_default_timezone_set('America/Mexico_City');
 
