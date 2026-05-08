@@ -56,6 +56,9 @@ class BeneficiariosController
         $beneficiarios = $this->modelo->consultar();
         $total         = count($beneficiarios);
         $total_activos = $this->modelo->obtenerTotalActivos();
+        $total_inactivos = max(0, $total - $total_activos);
+        $total_fisica  = $this->modelo->obtenerTotalPorTipo('fisica');
+        $total_moral   = $this->modelo->obtenerTotalPorTipo('moral');
 
         $mensaje      = $_SESSION['beneficiarios_mensaje'] ?? null;
         $tipo_mensaje = $_SESSION['beneficiarios_tipo']    ?? 'success';
@@ -68,17 +71,15 @@ class BeneficiariosController
 
     private function crear(): void
     {
-        $nombre_completo = trim((string)($_POST['nombre_completo'] ?? ''));
-        $edad            = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
-        $id_comunidad    = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
-        $direccion       = trim((string)($_POST['direccion'] ?? ''));
-        $telefono        = trim((string)($_POST['telefono'] ?? ''));
-        $estado          = trim((string)($_POST['estado'] ?? ''));
-        $notas           = trim((string)($_POST['notas'] ?? ''));
-        $registrador     = (int)$_SESSION['id_usuario'];
+        $tipoPersona = trim((string)($_POST['tipo_persona'] ?? ''));
+        $id_comunidad = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
+        $direccion = trim((string)($_POST['direccion'] ?? ''));
+        $telefono = trim((string)($_POST['telefono'] ?? ''));
+        $estado = trim((string)($_POST['estado'] ?? ''));
+        $registrador = (int)$_SESSION['id_usuario'];
 
-        if ($nombre_completo === '') {
-            $this->redirigirConMensaje('El nombre completo es obligatorio.', 'error');
+        if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
+            $this->redirigirConMensaje('Tipo de persona inválido.', 'error');
         }
 
         if (!$id_comunidad || $id_comunidad <= 0) {
@@ -90,21 +91,32 @@ class BeneficiariosController
             $this->redirigirConMensaje('Selecciona un estado válido para el beneficiario.', 'error');
         }
 
-        if ($edad !== null && $edad < 0) {
-            $this->redirigirConMensaje('La edad debe ser un número positivo.', 'error');
+        $detalles = [];
+        if ($tipoPersona === 'fisica') {
+            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
+            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
+            $detalles['edad'] = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
+            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
+
+            if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
+                $this->redirigirConMensaje('El nombre y apellido son obligatorios.', 'error');
+            }
+
+            if ($detalles['edad'] !== null && $detalles['edad'] < 0) {
+                $this->redirigirConMensaje('La edad debe ser un número positivo.', 'error');
+            }
+        } else {
+            $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
+            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+
+            if (empty($detalles['razon_social'])) {
+                $this->redirigirConMensaje('La razón social es obligatoria.', 'error');
+            }
         }
 
-        if ($this->modelo->insertar(
-            $nombre_completo,
-            $edad,
-            $id_comunidad,
-            $direccion,
-            $telefono,
-            $estado,
-            $notas,
-            $registrador
-        )) {
-            $this->redirigirConMensaje("Beneficiario <strong>{$nombre_completo}</strong> creado correctamente.", 'success');
+        if ($this->modelo->insertar($tipoPersona, $id_comunidad, $direccion, $telefono, $estado, $registrador, $detalles)) {
+            $this->redirigirConMensaje("Beneficiario creado correctamente.", 'success');
         }
 
         $this->redirigirConMensaje('Error al crear el beneficiario. Intenta nuevamente.', 'error');
@@ -143,16 +155,14 @@ class BeneficiariosController
             $this->redirigirConMensaje('Beneficiario no encontrado.', 'error');
         }
 
-        $nombre_completo = trim((string)($_POST['nombre_completo'] ?? ''));
-        $edad            = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
-        $id_comunidad    = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
-        $direccion       = trim((string)($_POST['direccion'] ?? ''));
-        $telefono        = trim((string)($_POST['telefono'] ?? ''));
-        $estado          = trim((string)($_POST['estado'] ?? ''));
-        $notas           = trim((string)($_POST['notas'] ?? ''));
+        $tipoPersona = trim((string)($_POST['tipo_persona'] ?? ''));
+        $id_comunidad = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
+        $direccion = trim((string)($_POST['direccion'] ?? ''));
+        $telefono = trim((string)($_POST['telefono'] ?? ''));
+        $estado = trim((string)($_POST['estado'] ?? ''));
 
-        if ($nombre_completo === '') {
-            $this->redirigirConMensaje('El nombre completo es obligatorio.', 'error');
+        if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
+            $this->redirigirConMensaje('Tipo de persona inválido.', 'error');
         }
 
         if (!$id_comunidad || $id_comunidad <= 0) {
@@ -164,21 +174,32 @@ class BeneficiariosController
             $this->redirigirConMensaje('Selecciona un estado válido para el beneficiario.', 'error');
         }
 
-        if ($edad !== null && $edad < 0) {
-            $this->redirigirConMensaje('La edad debe ser un número positivo.', 'error');
+        $detalles = [];
+        if ($tipoPersona === 'fisica') {
+            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
+            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
+            $detalles['edad'] = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
+            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
+
+            if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
+                $this->redirigirConMensaje('El nombre y apellido son obligatorios.', 'error');
+            }
+
+            if ($detalles['edad'] !== null && $detalles['edad'] < 0) {
+                $this->redirigirConMensaje('La edad debe ser un número positivo.', 'error');
+            }
+        } else {
+            $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
+            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+
+            if (empty($detalles['razon_social'])) {
+                $this->redirigirConMensaje('La razón social es obligatoria.', 'error');
+            }
         }
 
-        if ($this->modelo->actualizar(
-            $id,
-            $nombre_completo,
-            $edad,
-            $id_comunidad,
-            $direccion,
-            $telefono,
-            $estado,
-            $notas
-        )) {
-            $this->redirigirConMensaje("Beneficiario <strong>{$nombre_completo}</strong> actualizado correctamente.", 'success');
+        if ($this->modelo->actualizar($id, $tipoPersona, $id_comunidad, $direccion, $telefono, $estado, $detalles)) {
+            $this->redirigirConMensaje("Beneficiario actualizado correctamente.", 'success');
         }
 
         $this->redirigirConMensaje('Error al actualizar el beneficiario. Intenta nuevamente.', 'error');

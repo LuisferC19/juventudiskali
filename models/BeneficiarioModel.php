@@ -17,16 +17,31 @@ class BeneficiarioModel
         $sql = "
             SELECT
                 b.id_beneficiario,
-                b.nombre_completo,
-                b.edad,
+                b.tipo_persona,
+                CASE
+                    WHEN bf.id_beneficiario IS NOT NULL THEN CONCAT(bf.nombre, ' ', bf.apellido)
+                    WHEN bm.id_beneficiario IS NOT NULL THEN bm.razon_social
+                    ELSE 'Desconocido'
+                END AS nombre_completo,
+                COALESCE(bf.edad, NULL) AS edad,
+                COALESCE(bf.nombre, '') AS nombre,
+                COALESCE(bf.apellido, '') AS apellido,
+                COALESCE(bf.curp, '') AS curp,
+                COALESCE(bf.fecha_nacimiento, '') AS fecha_nacimiento,
+                COALESCE(bm.razon_social, '') AS razon_social,
+                COALESCE(bm.rfc, '') AS rfc,
                 c.nombre AS comunidad,
+                b.id_comunidad,
                 b.direccion,
                 b.telefono,
                 b.estado,
-                b.notas,
+                b.id_usuario_registrador,
                 CONCAT(u.nombre, ' ', u.apellido) AS registrado_por,
-                b.created_at
+                b.created_at,
+                b.updated_at
             FROM beneficiarios b
+            LEFT JOIN beneficiarios_fisicos bf ON b.id_beneficiario = bf.id_beneficiario
+            LEFT JOIN beneficiarios_morales bm ON b.id_beneficiario = bm.id_beneficiario
             LEFT JOIN comunidades c ON b.id_comunidad = c.id_comunidad
             LEFT JOIN usuarios u ON b.id_usuario_registrador = u.id_usuario
             ORDER BY b.id_beneficiario DESC
@@ -41,18 +56,25 @@ class BeneficiarioModel
         $sql = "
             SELECT
                 b.id_beneficiario,
-                b.nombre_completo,
-                b.edad,
+                b.tipo_persona,
+                COALESCE(bf.nombre, '') AS nombre,
+                COALESCE(bf.apellido, '') AS apellido,
+                COALESCE(bf.edad, NULL) AS edad,
+                COALESCE(bf.curp, '') AS curp,
+                COALESCE(bf.fecha_nacimiento, '') AS fecha_nacimiento,
+                COALESCE(bm.razon_social, '') AS razon_social,
+                COALESCE(bm.rfc, '') AS rfc,
                 b.id_comunidad,
                 c.nombre AS comunidad,
                 b.direccion,
                 b.telefono,
                 b.estado,
-                b.notas,
                 b.id_usuario_registrador,
                 b.created_at,
                 b.updated_at
             FROM beneficiarios b
+            LEFT JOIN beneficiarios_fisicos bf ON b.id_beneficiario = bf.id_beneficiario
+            LEFT JOIN beneficiarios_morales bm ON b.id_beneficiario = bm.id_beneficiario
             LEFT JOIN comunidades c ON b.id_comunidad = c.id_comunidad
             WHERE b.id_beneficiario = ?
             LIMIT 1
@@ -77,6 +99,14 @@ class BeneficiarioModel
         return (int)($row['total'] ?? 0);
     }
 
+    public function obtenerTotalPorTipo(string $tipo): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) AS total FROM beneficiarios WHERE tipo_persona = ?');
+        $stmt->execute([$tipo]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
+    }
+
     public function consultarComunidades(): array
     {
         $stmt = $this->db->query('SELECT id_comunidad, nombre FROM comunidades ORDER BY nombre ASC');
@@ -84,69 +114,135 @@ class BeneficiarioModel
     }
 
     public function insertar(
-        string $nombre_completo,
-        ?int $edad,
+        string $tipoPersona,
         int $id_comunidad,
         string $direccion,
         string $telefono,
         string $estado,
-        string $notas,
-        int $id_usuario_registrador
+        int $id_usuario_registrador,
+        array $detalles
     ): bool {
-        $sql = "
-            INSERT INTO beneficiarios
-                (nombre_completo, edad, id_comunidad, direccion, telefono, estado, notas, id_usuario_registrador, created_at)
-            VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-        ";
+        try {
+            $this->db->beginTransaction();
 
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            trim($nombre_completo),
-            $edad !== null ? $edad : null,
-            $id_comunidad,
-            trim($direccion),
-            trim($telefono),
-            $estado,
-            trim($notas),
-            $id_usuario_registrador,
-        ]);
+            // Insertar en tabla beneficiarios
+            $sql = "
+                INSERT INTO beneficiarios
+                    (tipo_persona, id_comunidad, direccion, telefono, estado, id_usuario_registrador, created_at)
+                VALUES
+                    (?, ?, ?, ?, ?, ?, NOW())
+            ";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                $tipoPersona,
+                $id_comunidad,
+                trim($direccion),
+                trim($telefono),
+                $estado,
+                $id_usuario_registrador,
+            ]);
+
+            $idBeneficiario = (int) $this->db->lastInsertId();
+
+            // Insertar datos específicos según tipo
+            if ($tipoPersona === 'fisica') {
+                $sql = "INSERT INTO beneficiarios_fisicos (id_beneficiario, nombre, apellido, edad, curp, fecha_nacimiento) 
+                        VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    $idBeneficiario,
+                    trim($detalles['nombre'] ?? ''),
+                    trim($detalles['apellido'] ?? ''),
+                    $detalles['edad'] ?? null,
+                    trim($detalles['curp'] ?? '') ?: null,
+                    trim($detalles['fecha_nacimiento'] ?? '') ?: null
+                ]);
+            } elseif ($tipoPersona === 'moral') {
+                $sql = "INSERT INTO beneficiarios_morales (id_beneficiario, razon_social, rfc) 
+                        VALUES (?, ?, ?)";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    $idBeneficiario,
+                    trim($detalles['razon_social'] ?? ''),
+                    trim($detalles['rfc'] ?? '') ?: null
+                ]);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            return false;
+        }
     }
 
     public function actualizar(
         int $id,
-        string $nombre_completo,
-        ?int $edad,
+        string $tipoPersona,
         int $id_comunidad,
         string $direccion,
         string $telefono,
         string $estado,
-        string $notas
+        array $detalles
     ): bool {
-        $sql = "
-            UPDATE beneficiarios
-            SET nombre_completo = ?,
-                edad = ?,
-                id_comunidad = ?,
-                direccion = ?,
-                telefono = ?,
-                estado = ?,
-                notas = ?,
-                updated_at = NOW()
-            WHERE id_beneficiario = ?
-        ";
+        try {
+            $this->db->beginTransaction();
 
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            trim($nombre_completo),
-            $edad !== null ? $edad : null,
-            $id_comunidad,
-            trim($direccion),
-            trim($telefono),
-            $estado,
-            trim($notas),
-            $id,
-        ]);
+            // Actualizar tabla beneficiarios
+            $sql = "
+                UPDATE beneficiarios
+                SET tipo_persona = ?,
+                    id_comunidad = ?,
+                    direccion = ?,
+                    telefono = ?,
+                    estado = ?,
+                    updated_at = NOW()
+                WHERE id_beneficiario = ?
+            ";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                $tipoPersona,
+                $id_comunidad,
+                trim($direccion),
+                trim($telefono),
+                $estado,
+                $id,
+            ]);
+
+            // Eliminar registros anteriores para evitar duplicados
+            $this->db->prepare("DELETE FROM beneficiarios_fisicos WHERE id_beneficiario = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM beneficiarios_morales WHERE id_beneficiario = ?")->execute([$id]);
+
+            // Insertar nuevos datos según tipo
+            if ($tipoPersona === 'fisica') {
+                $sql = "INSERT INTO beneficiarios_fisicos (id_beneficiario, nombre, apellido, edad, curp, fecha_nacimiento) 
+                        VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    $id,
+                    trim($detalles['nombre'] ?? ''),
+                    trim($detalles['apellido'] ?? ''),
+                    $detalles['edad'] ?? null,
+                    trim($detalles['curp'] ?? '') ?: null,
+                    trim($detalles['fecha_nacimiento'] ?? '') ?: null
+                ]);
+            } elseif ($tipoPersona === 'moral') {
+                $sql = "INSERT INTO beneficiarios_morales (id_beneficiario, razon_social, rfc) 
+                        VALUES (?, ?, ?)";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    $id,
+                    trim($detalles['razon_social'] ?? ''),
+                    trim($detalles['rfc'] ?? '') ?: null
+                ]);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            return false;
+        }
     }
 
     public function eliminar(int $id): bool
