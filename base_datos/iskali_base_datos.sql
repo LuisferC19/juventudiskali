@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS iskalli CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE iskalli;
+CREATE DATABASE IF NOT EXISTS iskali CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE iskali;
 
 -- ============================================================
 --  CATÁLOGOS BASE

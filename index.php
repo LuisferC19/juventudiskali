@@ -79,10 +79,6 @@ switch ($pagina) {
         (new DashboardController())->gamificacion();
         break;
 
-    case 'landing':
-          require_once 'controllers/LandingController.php';
-        (new LandingController())->landing();
-        break;
     case 'home':
     case 'inicio':
         require_once 'controllers/InicioController.php';
