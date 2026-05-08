@@ -14,6 +14,36 @@ require_once 'views/layouts/header.php';
 
     <div class="content">
 
+      <!-- ===== Tarjetas de estadísticas ===== -->
+      <div style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+
+        <div class="card" style="flex:1;min-width:150px;padding:20px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:var(--primary);"><?= $total ?></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Donadores totales</div>
+        </div>
+
+        <div class="card" style="flex:1;min-width:150px;padding:20px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:#4caf50;"><?= $total_activos ?></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Donadores activos</div>
+        </div>
+
+        <div class="card" style="flex:1;min-width:150px;padding:20px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:#f44336;"><?= $total - $total_activos ?></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Donadores inactivos</div>
+        </div>
+
+        <div class="card" style="flex:1;min-width:150px;padding:20px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:#2196f3;"><?= $total_por_tipo['Física'] ?? 0 ?></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Personas físicas</div>
+        </div>
+
+        <div class="card" style="flex:1;min-width:150px;padding:20px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:#ff9800;"><?= $total_por_tipo['Moral'] ?? 0 ?></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Personas morales</div>
+        </div>
+
+      </div>
+
       <div class="card">
         <div class="card-header">
           <h3>Donadores</h3>

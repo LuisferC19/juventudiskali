@@ -201,4 +201,57 @@ class DonadoresModel {
             return false;
         }
     }
+
+    /**
+     * Obtener total de donadores
+     */
+    public function obtenerTotal(): int {
+        $stmt = $this->db->query('SELECT COUNT(*) AS total FROM donadores');
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
+    }
+
+    /**
+     * Obtener total de donadores activos
+     */
+    public function obtenerTotalActivos(): int {
+        $stmt = $this->db->query("SELECT COUNT(*) AS total FROM donadores WHERE activo = 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
+    }
+
+    /**
+     * Obtener total de donadores por tipo (física/moral)
+     */
+    public function obtenerTotalPorTipo(): array {
+        $sql = "
+            SELECT
+                CASE
+                    WHEN df.id_donador IS NOT NULL THEN 'Física'
+                    WHEN dm.id_donador IS NOT NULL THEN 'Moral'
+                    ELSE 'Desconocido'
+                END AS tipo_persona,
+                COUNT(*) AS total
+            FROM donadores d
+            LEFT JOIN donadores_fisicos df ON d.id_donador = df.id_donador
+            LEFT JOIN donadores_morales dm ON d.id_donador = dm.id_donador
+            GROUP BY
+                CASE
+                    WHEN df.id_donador IS NOT NULL THEN 'Física'
+                    WHEN dm.id_donador IS NOT NULL THEN 'Moral'
+                    ELSE 'Desconocido'
+                END
+        ";
+
+        $stmt = $this->db->query($sql);
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Convertir a array asociativo para fácil acceso
+        $estadisticas = [];
+        foreach ($resultados as $row) {
+            $estadisticas[$row['tipo_persona']] = (int)$row['total'];
+        }
+
+        return $estadisticas;
+    }
 }

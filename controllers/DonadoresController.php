@@ -64,6 +64,11 @@ class DonadoresController {
         $mensaje = $_SESSION['donadores_mensaje'] ?? null;
         unset($_SESSION['donadores_mensaje']);
 
+        // Estadísticas para las tarjetas
+        $total = $this->modelo->obtenerTotal();
+        $total_activos = $this->modelo->obtenerTotalActivos();
+        $total_por_tipo = $this->modelo->obtenerTotalPorTipo();
+
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Donadores';
         require_once 'views/pages/donadores.php';
