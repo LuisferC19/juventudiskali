@@ -133,13 +133,34 @@ nav.scrolled { box-shadow: 0 4px 24px rgba(10,175,160,.12); }
 }
 
 .icon-img {
+  width: 22px;
+  height: 22px;
+}
+
+.hero-btns .icon-img,
+.section-inner .icon-img {
   width: 20px;
   height: 20px;
 }
 
 .stat-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+}
+
+.mascot-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(10,175,160,.1), rgba(194,24,91,.1));
+  font-size: 4.5rem;
+}
+
+.mascot-fallback[style] {
+  display: flex;
 }
 
 .value-icon img,
@@ -339,6 +360,34 @@ section { padding: 6rem 2rem; }
   padding: .3rem .9rem; border-radius: 50px;
   margin-bottom: .75rem;
 }
+.section-label-large { margin-bottom: 1.5rem; }
+.section-label-soft {
+  color: rgba(255,255,255,.7);
+  background: rgba(255,255,255,.15);
+}
+.section-center { text-align: center; }
+.section-copy { max-width: 600px; margin: 0 auto 2rem; }
+.section-block { margin-top: 1.75rem; }
+.section-meta { margin-top: .5rem; font-size: .88rem; }
+.wave-svg { height: 60px; width: 100%; display: block; }
+.qr-copy { color: rgba(255,255,255,.85); max-width: 300px; text-align: left; }
+.qr-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.3rem; color: #fff; margin-bottom: .75rem; line-height: 1.2; }
+.qr-text { font-size: .9rem; line-height: 1.7; margin-bottom: 1.25rem; color: rgba(255,255,255,.75); }
+.qr-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--amarillo);
+  color: #1A2E2C;
+  border-radius: 50px;
+  padding: .65rem 1.75rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: .95rem;
+  text-decoration: none;
+  transition: transform .2s;
+}
+.qr-btn:hover { transform: translateY(-1px); }
+.footer-meta { font-size: .75rem; color: rgba(255,255,255,.3); letter-spacing: .06em; text-transform: uppercase; margin-top: .15rem; }
+.footer-contact { margin-top: 1rem; font-size: .8rem; color: rgba(255,255,255,.25); }
 .section-title {
   font-family: 'Nunito', sans-serif;
   font-weight: 900; font-size: clamp(1.8rem, 3.5vw, 2.5rem);

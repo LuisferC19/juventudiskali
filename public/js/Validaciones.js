@@ -148,49 +148,78 @@
   function blockInvalidKeys(input) {
     const rules = (input.dataset.rules || '').split('|');
 
-    // Bloquear en keypress (caracteres imprimibles)
+    function isControlKey(e) {
+      return e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1;
+    }
+
+    function handlePaste(e, regex, replaceMsg) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      const clean = text.replace(regex, '');
+      document.execCommand('insertText', false, clean);
+      if (text !== clean) flashError(input, replaceMsg);
+    }
+
     if (rules.includes('alpha')) {
-      input.addEventListener('keypress', function(e) {
-        const char = String.fromCharCode(e.charCode);
-        if (!/[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/.test(char)) {
+      input.addEventListener('keydown', function(e) {
+        if (isControlKey(e)) return;
+        if (!/[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/.test(e.key)) {
           e.preventDefault();
           flashError(input, 'Solo letras y espacios permitidos.');
         }
       });
 
-      // Limpiar pegado
       input.addEventListener('paste', function(e) {
-        e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData('text');
-        const clean = text.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
-        document.execCommand('insertText', false, clean);
-        if (text !== clean) flashError(input, 'Se eliminaron caracteres no permitidos.');
+        handlePaste(e, /[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, 'Se eliminaron caracteres no permitidos.');
       });
     }
 
-    if (rules.includes('numeric') || rules.some(r => r === 'numeric')) {
-      input.addEventListener('keypress', function(e) {
-        if (!/\d/.test(String.fromCharCode(e.charCode)) && e.charCode !== 0) {
+    if (rules.includes('alphanum')) {
+      input.addEventListener('keydown', function(e) {
+        if (isControlKey(e)) return;
+        if (!/[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/.test(e.key)) {
+          e.preventDefault();
+          flashError(input, 'Solo letras, números y espacios permitidos.');
+        }
+      });
+
+      input.addEventListener('paste', function(e) {
+        handlePaste(e, /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/g, 'Se eliminaron caracteres no permitidos.');
+      });
+    }
+
+    if (rules.includes('numeric')) {
+      input.addEventListener('keydown', function(e) {
+        if (isControlKey(e)) return;
+        if (!/[0-9]/.test(e.key)) {
           e.preventDefault();
           flashError(input, 'Solo se permiten números.');
         }
       });
+
+      input.addEventListener('paste', function(e) {
+        handlePaste(e, /[^0-9]/g, 'Solo se permiten números.');
+      });
     }
 
     if (rules.includes('phone')) {
-      input.addEventListener('keypress', function(e) {
-        const char = String.fromCharCode(e.charCode);
-        if (!/[\d\s\-\+\(\)]/.test(char) && e.charCode !== 0) {
+      input.addEventListener('keydown', function(e) {
+        if (isControlKey(e)) return;
+        if (!/[\d\s\-\+\(\)]/.test(e.key)) {
           e.preventDefault();
           flashError(input, 'Solo dígitos y guiones permitidos.');
         }
       });
+
+      input.addEventListener('paste', function(e) {
+        handlePaste(e, /[^\d\s\-\+\(\)]/g, 'Se eliminaron caracteres no permitidos.');
+      });
     }
 
-    // Bloquear siempre caracteres especiales peligrosos si tiene no_special
     if (rules.includes('no_special')) {
-      input.addEventListener('keypress', function(e) {
-        if (/[<>'"&;]/.test(String.fromCharCode(e.charCode))) {
+      input.addEventListener('keydown', function(e) {
+        if (isControlKey(e)) return;
+        if (/[<>'"&;]/.test(e.key)) {
           e.preventDefault();
           flashError(input, 'Caracteres especiales no permitidos.');
         }

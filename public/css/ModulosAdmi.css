@@ -283,14 +283,19 @@ a { text-decoration: none; color: inherit; }
 }
 .card-header h3 {
   font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
 }
 .toolbar {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.icon-img {
+  width: 18px;
+  height: 18px;
 }
 
 /* Campos de formulario */

@@ -65,8 +65,11 @@
                 <input type="text" id="nombre" name="nombre"
                        value="<?= e($usuario['nombre'] ?? '') ?>"
                        placeholder="Ej: Juan" maxlength="100" required
-                       autocomplete="given-name"
-                       data-rules="required|alpha|min:2|max:100|no_special">
+                       autocomplete="given-name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+"
+                       data-rules="required|alpha|min:2|max:100|no_special"
+                       data-msg_required="El nombre es obligatorio."
+                       data-msg_alpha="Solo letras y espacios. No uses números ni símbolos."
+                       data-msg_no_special="No se permiten caracteres especiales.">
                 <div class="field-error"></div>
               </div>
 
@@ -76,8 +79,11 @@
                 <input type="text" id="apellido" name="apellido"
                        value="<?= e($usuario['apellido'] ?? '') ?>"
                        placeholder="Ej: García López" maxlength="100" required
-                       autocomplete="family-name"
-                       data-rules="required|alpha|min:2|max:100|no_special">
+                       autocomplete="family-name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+"
+                       data-rules="required|alpha|min:2|max:100|no_special"
+                       data-msg_required="El apellido es obligatorio."
+                       data-msg_alpha="Solo letras y espacios. No uses números ni símbolos."
+                       data-msg_no_special="No se permiten caracteres especiales.">
                 <div class="field-error"></div>
               </div>
 

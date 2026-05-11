@@ -4,7 +4,7 @@
      🎨 PERSONALIZACIÓN — NAVBAR
      ══════════════════════════════════════════════════════════════
      • nav-logo-ring : Reemplaza "ISK" por un <img> con el logo oficial:
-         <img src="<?= BASE_URL ?>/public/img/logo-iskali.png" alt="Iskali" style="width:36px;">
+         <img src="<?= BASE_URL ?>/public/img/logo-iskali.png" alt="Iskali" width="36">
      • nav-links     : Agrega o quita secciones según crezca la landing.
      • icons8-login-50.svg : Puedes sustituirlo por FontAwesome/Material Icons.
      • El href de "Iniciar sesión" NO debe cambiarse — es la ruta de auth.
@@ -103,12 +103,10 @@
         <div class="tag-float tag-a">🌿 Sostenible</div>
         <div class="tag-float tag-b">💜 Inclusión</div>
         <div class="tag-float tag-c">⭐ Voluntario</div>
-        <!-- 🐨 MASCOTA: Reemplaza esta imagen cuando tengas la imagen oficial de Iski.
-             Sube tu imagen a /public/img/mascota-iski.png y cambia el src de abajo. -->
         <img src="https://i.imgur.com/placeholder.png"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
           class="mascot-img" alt="Mascota Iski">
-        <div style="display:flex;align-items:center;justify-content:center;width:220px;height:220px;background:linear-gradient(135deg,rgba(10,175,160,.1),rgba(194,24,91,.1));border-radius:50%;font-size:5rem;">🐨</div>
+        <div class="mascot-fallback">🐨</div>
         <div class="mascot-name">-ISKI-</div>
         <div class="mascot-desc">Tu amigo koala de Fundación Iskali A.C.</div>
       </div>
@@ -117,7 +115,7 @@
 </section>
 
 <div class="wave-divider">
-  <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="height:60px;">
+  <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="wave-svg">
     <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#F5F3FF"/>
   </svg>
 </div>
@@ -156,7 +154,7 @@
       </div>
 
       <div>
-        <div class="section-label" style="margin-bottom:1.5rem;">Nuestra historia</div>
+        <div class="section-label section-label-large">Nuestra historia</div>
         <div class="timeline-strip">
           <div class="tl-item">
             <div class="tl-year">2021</div>
@@ -179,9 +177,9 @@
             <div class="tl-desc">Fundación Iskali A.C.</div>
           </div>
         </div>
-        <div style="margin-top:1.75rem;">
+        <div class="section-block">
           <div class="section-label">Redes sociales</div>
-          <p class="section-sub" style="margin-top:.5rem;font-size:.88rem;">
+          <p class="section-sub section-meta">
             📘 <strong>Facebook:</strong> Juventud Iskali · 1.1K seguidores<br>
             📸 <strong>Instagram:</strong> @juventud_iskali · 953 seguidores<br>
             🎵 <strong>TikTok:</strong> Juventud.iskali
@@ -193,11 +191,11 @@
 </section>
 
 <section class="proyectos-bg" id="proyectos">
-  <div class="section-inner">
-    <div style="text-align:center; max-width:600px; margin:0 auto;">
+  <div class="section-inner section-center">
+    <div class="section-copy">
       <div class="section-label">Proyectos & Actividades</div>
       <h2 class="section-title">Lo que hacemos <span>cada día</span></h2>
-      <p class="section-sub" style="margin:0 auto;">Desde conciertos inclusivos hasta reforestaciones — aquí hay algo para cada voluntario.</p>
+      <p class="section-sub">Desde conciertos inclusivos hasta reforestaciones — aquí hay algo para cada voluntario.</p>
     </div>
 
     <div class="proj-grid">
@@ -277,11 +275,11 @@
 </section>
 
 <section id="como-ayudar">
-  <div class="section-inner">
-    <div style="text-align:center; max-width:600px; margin:0 auto 0;">
+  <div class="section-inner section-center">
+    <div class="section-copy">
       <div class="section-label">¿Cómo ayudar?</div>
       <h2 class="section-title">Hay un lugar <span>para ti</span></h2>
-      <p class="section-sub" style="margin:0 auto 0;">No importa cuánto tiempo tengas — siempre hay una forma de sumar.</p>
+      <p class="section-sub">No importa cuánto tiempo tengas — siempre hay una forma de sumar.</p>
     </div>
     <div class="como-grid">
       <div class="como-card">
@@ -310,7 +308,7 @@
 </section>
 
 <section class="colab-bg">
-  <div class="section-inner" style="text-align:center;">
+  <div class="section-inner section-center">
     <div class="section-label">Colaboradores</div>
     <h2 class="section-title">Quienes <span>confían</span> en nosotros</h2>
     <div class="colab-logos">
@@ -330,7 +328,7 @@
 
 <section class="redes-bg" id="redes">
   <div class="section-inner redes-inner">
-    <div class="section-label" style="color:rgba(255,255,255,.7); background:rgba(255,255,255,.15);">Síguenos</div>
+    <div class="section-label section-label-soft">Síguenos</div>
     <h2 class="redes-title">Encuéntranos en <br>Redes Sociales</h2>
     <p class="redes-sub">Comparte, inspira y suma más manos al cambio.</p>
     <div class="redes-cards">
@@ -360,12 +358,10 @@
         <div class="qr-img">📋</div>
         <div class="qr-desc">Escanea para<br>unirte al equipo</div>
       </div>
-      <div style="color:rgba(255,255,255,.7); max-width:300px; text-align:left;">
-        <p style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;margin-bottom:.75rem;">¿Listo para<br>ser parte del cambio?</p>
-        <p style="font-size:.9rem;line-height:1.7;margin-bottom:1.25rem;">Escanea el código QR o llena el formulario de voluntario. ¡Te esperamos!</p>
-        <a href="https://forms.gle/uejAezgSyg4QLCCr8" target="_blank"
-          style="display:inline-flex;align-items:center;gap:.5rem;background:var(--amarillo);color:#1A2E2C;border-radius:50px;padding:.65rem 1.75rem;font-family:'Nunito',sans-serif;font-weight:900;font-size:.95rem;text-decoration:none;transition:transform .2s;"
-          onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="qr-copy">
+        <p class="qr-title">¿Listo para<br>ser parte del cambio?</p>
+        <p class="qr-text">Escanea el código QR o llena el formulario de voluntario. ¡Te esperamos!</p>
+        <a href="https://forms.gle/uejAezgSyg4QLCCr8" target="_blank" class="qr-btn btn-icon">
           <img src="<?= BASE_URL ?>/public/iconos/icons8-añadir-50.png" alt="" class="icon-img"> Llenar formulario
         </a>
       </div>
@@ -395,9 +391,9 @@
   <div class="footer-inner">
     <div class="footer-brand">
       <div class="footer-logo">Juventud <span>ISKALI</span></div>
-      <div style="font-size:.75rem;color:rgba(255,255,255,.3);letter-spacing:.06em;text-transform:uppercase;margin-top:.15rem;">Fundación Iskali A.C.</div>
+      <div class="footer-meta">Fundación Iskali A.C.</div>
       <p class="footer-tagline">Colectivo juvenil de servicio social enfocado en causas comunitarias y protección ambiental. Tlaxcala & Puebla, México.</p>
-      <p style="margin-top:1rem;font-size:.8rem;color:rgba(255,255,255,.25);">📞 248 116 6778</p>
+      <p class="footer-contact">📞 248 116 6778</p>
     </div>
     <div class="footer-col">
       <h4>Navegación</h4>
