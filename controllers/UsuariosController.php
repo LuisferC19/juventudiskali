@@ -93,7 +93,7 @@ class UsuariosController
 
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Usuarios del Sistema';
-        require_once 'views/pages/usuarios.php';
+        require_once 'views/pages/UsuariosView.php';
     }
 
     // =========================================================
@@ -147,7 +147,7 @@ class UsuariosController
         $usuario       = null;
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Nuevo Usuario';
-        require_once 'views/pages/usuario_form.php';
+        require_once 'views/pages/Usuarios_FormView.php';
     }
 
     // =========================================================
@@ -167,7 +167,7 @@ class UsuariosController
         $id_usuario    = $id;
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Editar Usuario';
-        require_once 'views/pages/usuario_form.php';
+        require_once 'views/pages/Usuarios_FormView.php';
     }
 
     // =========================================================

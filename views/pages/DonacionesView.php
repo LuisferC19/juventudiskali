@@ -1,6 +1,6 @@
 <?php
 /**
- * views/pages/donaciones.php
+ * views/pages/DonacionesView.php
  * Registro y gestión de donaciones recibidas.
  */
 require_once 'views/layouts/header.php';

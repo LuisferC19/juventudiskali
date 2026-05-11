@@ -16,6 +16,6 @@ class CampanasController {
         $this->verificarSesion();
         $pagina_activa = 'campanas';
         $titulo_pagina = 'Campañas';
-        require_once 'views/pages/campanas.php';
+        require_once 'views/pages/CampanasView.php';
     }
 }

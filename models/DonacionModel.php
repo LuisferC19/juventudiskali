@@ -1,6 +1,6 @@
 <?php
 /**
- * models/Donacion.php
+ * models/DonacionModel.php
  * Modelo de Donación — Solo estructura de datos, sin base de datos.
  */
 class Donacion {

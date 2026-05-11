@@ -1,11 +1,11 @@
 <?php
-require_once 'models/DonadoresModel.php';
+require_once 'models/DonadorModel.php';
 
 class DonadoresController {
-    private DonadoresModel $modelo;
+    private DonadorModel $modelo;
 
     public function __construct(PDO $conexion) {
-        $this->modelo = new DonadoresModel($conexion);
+        $this->modelo = new DonadorModel($conexion);
     }
 
     private function verificarSesion(): void {
@@ -71,7 +71,7 @@ class DonadoresController {
 
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Donadores';
-        require_once 'views/pages/donadores.php';
+        require_once 'views/pages/DonadoresView.php';
     }
 
     /**
@@ -81,7 +81,7 @@ class DonadoresController {
         $donador = null;
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Nuevo Donador';
-        require_once 'views/pages/donador_form.php';
+        require_once 'views/pages/Donadores_FormView.php';
     }
 
     /**
@@ -98,7 +98,7 @@ class DonadoresController {
 
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Editar Donador';
-        require_once 'views/pages/donador_form.php';
+        require_once 'views/pages/Donadores_FormView.php';
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * views/pages/donadores.php
+ * views/pages/DonadoresView.php
  * Listado y gestión de donadores.
  */
 require_once 'views/layouts/header.php';

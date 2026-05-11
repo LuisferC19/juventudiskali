@@ -1,6 +1,6 @@
 <?php
 /**
- * views/pages/campanas.php
+ * views/pages/CampanasView.php
  * Gestión de campañas del sistema Iskalli.
  */
 require_once 'views/layouts/header.php';

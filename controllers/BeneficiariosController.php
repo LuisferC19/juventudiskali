@@ -66,7 +66,7 @@ class BeneficiariosController
 
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Beneficiarios';
-        require_once 'views/pages/beneficiarios.php';
+        require_once 'views/pages/BeneficiariosView.php';
     }
 
     private function crear(): void
@@ -129,7 +129,7 @@ class BeneficiariosController
         $accion        = 'nuevo';
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Nuevo Beneficiario';
-        require_once 'views/pages/beneficiario_form.php';
+        require_once 'views/pages/Beneficiarios_FormView.php';
     }
 
     private function formularioEditar(int $id): void
@@ -144,7 +144,7 @@ class BeneficiariosController
         $accion        = 'editar';
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Editar Beneficiario';
-        require_once 'views/pages/beneficiario_form.php';
+        require_once 'views/pages/Beneficiarios_FormView.php';
     }
 
     private function actualizar(int $id): void

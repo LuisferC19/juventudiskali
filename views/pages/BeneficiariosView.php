@@ -1,6 +1,6 @@
 <?php
 /**
- * views/pages/beneficiarios.php
+ * views/pages/BeneficiariosView.php
  * Registro de beneficiarios del programa.
  */
 require_once 'views/layouts/header.php';

@@ -63,6 +63,10 @@ function navActivo(string $pagina, string $actual): string {
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 7L5 4M8 7L11 4M8 7V13"/><circle cx="8" cy="3" r="2"/><path d="M2 13H14"/></svg>
       Voluntarios
     </a>
+    <a href="<?= BASE_URL ?>/index.php?pagina=respaldos" class="nav-item <?= navActivo('respaldos', $pagina_activa) ?>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4H14V12H2V4Z"/><path d="M6 8H10"/><path d="M8 6V10"/></svg>
+      Respaldos
+    </a>
 
     <div class="nav-label">Extras</div>
     <a href="<?= BASE_URL ?>/index.php?pagina=gamificacion" class="nav-item <?= navActivo('gamificacion', $pagina_activa) ?>">

@@ -1,6 +1,6 @@
 <?php
 /**
- * models/Campana.php
+ * models/CampanaModel.php
  * Modelo de Campaña — Solo estructura de datos, sin base de datos.
  */
 class Campana {

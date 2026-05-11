@@ -79,6 +79,17 @@ switch ($pagina) {
         (new DashboardController())->gamificacion();
         break;
 
+    case 'respaldos':
+        require_once 'controllers/BackupController.php';
+        $controller = new BackupController($conexion);
+        $accion = $_GET['accion'] ?? 'index';
+        if ($accion === 'generar') {
+            $controller->generar();
+        } else {
+            $controller->index();
+        }
+        break;
+
     case 'home':
     case 'inicio':
         require_once 'controllers/InicioController.php';

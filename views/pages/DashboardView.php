@@ -1,6 +1,6 @@
 <?php
 /**
- * views/pages/dashboard.php
+ * views/pages/DashboardView.php
  * Dashboard principal — KPIs reales de BD + gráficas Chart.js
  */
 require_once 'views/layouts/header.php';

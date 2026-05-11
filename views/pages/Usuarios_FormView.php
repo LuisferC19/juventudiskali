@@ -55,7 +55,7 @@
           <form method="POST"
                 action="<?= $formAction ?>"
                 id="form-usuario"
-                onsubmit="return validarFormUsuario()">
+                data-validate="true">
 
             <div class="form-grid">
 
@@ -65,7 +65,9 @@
                 <input type="text" id="nombre" name="nombre"
                        value="<?= e($usuario['nombre'] ?? '') ?>"
                        placeholder="Ej: Juan" maxlength="100" required
-                       autocomplete="given-name">
+                       autocomplete="given-name"
+                       data-rules="required|alpha|min:2|max:100|no_special">
+                <div class="field-error"></div>
               </div>
 
               <!-- Apellido -->
@@ -74,7 +76,9 @@
                 <input type="text" id="apellido" name="apellido"
                        value="<?= e($usuario['apellido'] ?? '') ?>"
                        placeholder="Ej: García López" maxlength="100" required
-                       autocomplete="family-name">
+                       autocomplete="family-name"
+                       data-rules="required|alpha|min:2|max:100|no_special">
+                <div class="field-error"></div>
               </div>
 
               <!-- Email -->
@@ -83,7 +87,9 @@
                 <input type="email" id="email" name="email"
                        value="<?= e($usuario['email'] ?? '') ?>"
                        placeholder="correo@iskalli.mx" maxlength="150" required
-                       autocomplete="email">
+                       autocomplete="email"
+                       data-rules="required|email|max:150">
+                <div class="field-error"></div>
               </div>
 
               <!-- Contraseña -->
@@ -95,7 +101,9 @@
                        placeholder="<?= $accion === 'editar' ? 'Dejar vacío para mantener la actual' : 'Mínimo 6 caracteres' ?>"
                        minlength="6"
                        <?= $accion !== 'editar' ? 'required' : '' ?>
-                       autocomplete="new-password">
+                       autocomplete="new-password"
+                       data-rules="<?= $accion === 'editar' ? 'min:6' : 'required|min:6' ?>">
+                <div class="field-error"></div>
                 <?php if ($accion === 'editar'): ?>
                   <small style="color:var(--muted,#999);font-size:11px;margin-top:4px;display:block;">
                     Solo ingresa si deseas cambiar la contraseña actual.
@@ -113,7 +121,9 @@
                        placeholder="Repite la contraseña"
                        minlength="6"
                        <?= $accion !== 'editar' ? 'required' : '' ?>
-                       autocomplete="new-password">
+                       autocomplete="new-password"
+                       data-rules="match:password">
+                <div class="field-error"></div>
               </div>
 
               <!-- Rol -->
@@ -141,12 +151,6 @@
 
             </div><!-- /form-grid -->
 
-            <!-- Mensaje de error validación JS -->
-            <div id="form-error"
-                 style="display:none;background:#fdecea;color:#c62828;padding:10px 14px;
-                        border-radius:6px;border-left:4px solid #f44336;margin-top:12px;font-size:13px;">
-            </div>
-
             <!-- Botones de acción -->
             <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;
                         border-top:1px solid var(--border,#eee);">
@@ -168,6 +172,8 @@
   </div><!-- /main -->
 </div>
 
+<script src="<?= BASE_URL ?>/public/js/App.js"></script>
+<script src="<?= BASE_URL ?>/public/js/Validaciones.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var passwordInput  = document.getElementById('password');
@@ -180,44 +186,15 @@ document.addEventListener('DOMContentLoaded', function () {
     passwordInput.addEventListener('input', function () {
       if (this.value.length > 0) {
         confirmarCampo.style.display = 'block';
-        confirmarInput.required      = true;
+        confirmarInput.setAttribute('data-rules', 'required|match:password');
       } else {
         confirmarCampo.style.display = 'none';
-        confirmarInput.required      = false;
-        confirmarInput.value         = '';
+        confirmarInput.removeAttribute('data-rules');
+        confirmarInput.value = '';
       }
     });
   }
 });
-
-function validarFormUsuario() {
-  var errorDiv      = document.getElementById('form-error');
-  var passwordInput = document.getElementById('password');
-  var confirmarInput= document.getElementById('confirmar_password');
-  var esEdicion     = <?= $accion === 'editar' ? 'true' : 'false' ?>;
-
-  errorDiv.style.display = 'none';
-  errorDiv.textContent   = '';
-
-  // Si hay contraseña ingresada (requerido en crear, opcional en editar)
-  if (!esEdicion || passwordInput.value.length > 0) {
-    if (passwordInput.value.length < 6) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent   = 'La contraseña debe tener al menos 6 caracteres.';
-      passwordInput.focus();
-      return false;
-    }
-
-    if (passwordInput.value !== confirmarInput.value) {
-      errorDiv.style.display = 'block';
-      errorDiv.textContent   = 'Las contraseñas no coinciden. Verifica e intenta de nuevo.';
-      confirmarInput.focus();
-      return false;
-    }
-  }
-
-  return true;
-}
 </script>
 
 <?php require_once 'views/layouts/footer.php'; ?>

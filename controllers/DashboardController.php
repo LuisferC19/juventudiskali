@@ -21,7 +21,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'dashboard';
         $titulo_pagina = 'Dashboard';
-        require_once 'views/pages/dashboard.php';
+        require_once 'views/pages/DashboardView.php';
     }
 
     // ——— Donadores ———
@@ -29,7 +29,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Donadores';
-        require_once 'views/pages/donadores.php';
+        require_once 'views/pages/DonadoresView.php';
     }
 
     // ——— Donaciones ———
@@ -37,7 +37,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'donaciones';
         $titulo_pagina = 'Donaciones';
-        require_once 'views/pages/donaciones.php';
+        require_once 'views/pages/DonacionesView.php';
     }
 
     // ——— Beneficiarios ———
@@ -45,7 +45,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Beneficiarios';
-        require_once 'views/pages/beneficiarios.php';
+        require_once 'views/pages/BeneficiariosView.php';
     }
 
     // ——— Entregas ———
@@ -53,7 +53,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'entregas';
         $titulo_pagina = 'Entregas';
-        require_once 'views/pages/entregas.php';
+        require_once 'views/pages/EntregasView.php';
     }
 
     // ——— Inventario ———
@@ -61,7 +61,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'inventario';
         $titulo_pagina = 'Inventario';
-        require_once 'views/pages/inventario.php';
+        require_once 'views/pages/InventarioView.php';
     }
 
     // ——— Voluntarios ———
@@ -69,7 +69,7 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'voluntarios';
         $titulo_pagina = 'Voluntarios';
-        require_once 'views/pages/voluntarios.php';
+        require_once 'views/pages/VoluntariosView.php';
     }
 
     // ——— Gamificación ———
@@ -77,6 +77,6 @@ class DashboardController {
         $this->verificarSesion();
         $pagina_activa = 'gamificacion';
         $titulo_pagina = 'Gamificación';
-        require_once 'views/pages/gamificacion.php';
+        require_once 'views/pages/GamificacionView.php';
     }
 }

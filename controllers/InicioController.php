@@ -19,6 +19,6 @@ class InicioController {
 
         $titulo_pagina = 'Juventud ISKALI';
         $body_class = 'landing-body';
-        require_once 'views/pages/landing.php';
+        require_once 'views/pages/LandingView.php';
     }
 }

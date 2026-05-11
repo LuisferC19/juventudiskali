@@ -266,7 +266,7 @@
 </div>
 
 <!-- JavaScript principal -->
-<script src="<?= BASE_URL ?>/public/js/iskalli.js"></script>
+<script src="<?= BASE_URL ?>/public/js/App.js"></script>
 
 </body>
 </html>

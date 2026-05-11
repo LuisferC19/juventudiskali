@@ -99,7 +99,7 @@ class AuthController
             }
         }
 
-        require_once 'views/pages/login.php';
+        require_once 'views/pages/LoginView.php';
     }
 
     /**

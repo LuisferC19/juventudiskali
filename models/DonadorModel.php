@@ -1,9 +1,9 @@
 <?php
 /**
- * models/DonadoresModel.php
+ * models/DonadorModel.php
  * Modelo para gestionar donadores en la base de datos
  */
-class DonadoresModel {
+class DonadorModel {
     private PDO $db;
 
     public function __construct(PDO $conexion) {

@@ -240,8 +240,8 @@
   </div>
 </div>
 
-<script src="<?= BASE_URL ?>/public/js/iskalli.js"></script>
-<script src="<?= BASE_URL ?>/public/js/iskali_validaciones.js"></script>
+<script src="<?= BASE_URL ?>/public/js/App.js"></script>
+<script src="<?= BASE_URL ?>/public/js/Validaciones.js"></script>
 <script>
 function toggleTipoBeneficiario() {
   const tipo = document.getElementById('tipo_persona').value;
