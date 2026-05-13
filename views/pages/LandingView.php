@@ -21,8 +21,21 @@
     <li><a href="#quienes">Quiénes somos</a></li>
     <li><a href="#proyectos">Proyectos</a></li>
     <li><a href="#como-ayudar">Cómo ayudar</a></li>
-    <li><a href="#redes">Redes</a></li>
   </ul>
+  <div class="nav-social">
+    <a href="https://facebook.com/JuventudIskali" target="_blank" aria-label="Facebook">
+      <img src="<?= BASE_URL ?>/public/iconos/icons8-facebook-50.png" alt="Facebook" class="icon-img">
+    </a>
+    <a href="https://instagram.com/juventud_iskali" target="_blank" aria-label="Instagram">
+      <img src="<?= BASE_URL ?>/public/iconos/icons8-instagram-50.png" alt="Instagram" class="icon-img">
+    </a>
+    <a href="https://tiktok.com/@Juventud.iskali" target="_blank" aria-label="TikTok">
+      <img src="<?= BASE_URL ?>/public/iconos/icons8-tiktok-50.svg" alt="TikTok" class="icon-img">
+    </a>
+    <a href="https://youtube.com" target="_blank" aria-label="YouTube">
+      <img src="<?= BASE_URL ?>/public/iconos/icons8-youtube-play-50.png" alt="YouTube" class="icon-img">
+    </a>
+  </div>
   <div class="nav-actions">
     <a href="<?= BASE_URL ?>/index.php?pagina=login" class="nav-login btn-icon">
       <img src="<?= BASE_URL ?>/public/iconos/icons8-login-50.svg" alt="Iniciar sesión" class="icon-img">
@@ -302,6 +315,34 @@
         <div class="como-title">Patrocinador</div>
         <div class="como-desc">Colabora con una cuota monetaria o en especie destinada a casos específicos y campañas activas.</div>
         <a href="mailto:contacto@iskali.org" class="como-btn bt3">Patrocinar</a>
+      </div>
+    </div>
+
+    <!-- Subsección: Tipos de Donador -->
+    <div style="margin-top: 4rem;">
+      <div class="section-label">¿Cómo quieres participar como donador?</div>
+      <p class="section-sub" style="margin-bottom: 2rem;">Elige el tipo de participación que se ajuste mejor a ti y tus capacidades.</p>
+      <div class="donor-type-grid">
+        <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=anonimo" class="donor-type-card">
+          <div class="donor-type-icon">🔐</div>
+          <div class="donor-type-title">Anónimo (Invitado)</div>
+          <div class="donor-type-desc">Dona sin registrarte, mantén tu privacidad</div>
+        </a>
+        <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=persona" class="donor-type-card">
+          <div class="donor-type-icon">👤</div>
+          <div class="donor-type-title">Persona</div>
+          <div class="donor-type-desc">Registro individual con tus datos</div>
+        </a>
+        <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=grupo" class="donor-type-card">
+          <div class="donor-type-icon">👥</div>
+          <div class="donor-type-title">Grupo</div>
+          <div class="donor-type-desc">Colectivo o equipo de amigos</div>
+        </a>
+        <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=organizacion" class="donor-type-card">
+          <div class="donor-type-icon">🏢</div>
+          <div class="donor-type-title">Organización</div>
+          <div class="donor-type-desc">Empresa o institución oficial</div>
+        </a>
       </div>
     </div>
   </div>

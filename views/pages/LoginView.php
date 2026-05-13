@@ -56,9 +56,7 @@
       Iniciar Sesión
     </button>
 
-    <a href="<?= BASE_URL ?>/index.php?pagina=usuarios&accion=nuevo" class="btn-create-account">
-      Crear Cuenta
-    </a>
+    <p class="login-footer-note">¿Eres nuevo? Contacta al administrador para obtener acceso.</p>
   </form>
 
   <div class="login-footer">

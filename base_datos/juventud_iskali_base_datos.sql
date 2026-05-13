@@ -582,7 +582,7 @@ CREATE INDEX idx_asig_voluntario        ON asignaciones_voluntario(id_voluntario
 --  VISTAS ACTUALIZADAS
 -- ============================================================
 
-CREATE OR REPLACE VIEW v_donadores AS
+REATE OR REPLACE VIEW v_donadores AS
 SELECT
     d.id_donador,
     CASE
@@ -598,7 +598,7 @@ SELECT
     d.puntos_acumulados,
     ng.nombre AS nivel,
     d.activo,
-    d.created_at
+    d.createCd_at
 FROM donadores d
 LEFT JOIN donadores_fisicos     df ON d.id_donador = df.id_donador
 LEFT JOIN donadores_morales     dm ON d.id_donador = dm.id_donador

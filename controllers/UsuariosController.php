@@ -110,6 +110,11 @@ class UsuariosController
         $id_rol             = filter_var($_POST['id_rol'] ?? '', FILTER_VALIDATE_INT);
         $activo             = isset($_POST['activo']) ? true : false;
 
+        // Forzar id_rol=5 (Donador) si el usuario no es administrador
+        if (($_SESSION['rol'] ?? '') !== 'Administrador') {
+            $id_rol = 5;
+        }
+
         if (empty($nombre) || empty($apellido)) {
             $this->redirigirConMensaje('El nombre y el apellido son requeridos.', 'error');
         }

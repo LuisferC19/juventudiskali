@@ -90,6 +90,24 @@ switch ($pagina) {
         }
         break;
 
+    case 'notificaciones':
+        require_once 'controllers/NotificacionesController.php';
+        $ctrl = new NotificacionesController($conexion);
+        $ctrl->index();
+        break;
+
+    case 'planning':
+        require_once 'controllers/PlanningController.php';
+        $ctrl = new PlanningController($conexion);
+        $accion = $_GET['accion'] ?? 'index';
+        match($accion) {
+            'crear'             => $ctrl->index(),
+            'actualizar_estado' => $ctrl->index(),
+            'actividades_mes'   => $ctrl->getActividadesMes(),
+            default             => $ctrl->index(),
+        };
+        break;
+
     case 'home':
     case 'inicio':
         require_once 'controllers/InicioController.php';

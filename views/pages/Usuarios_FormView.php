@@ -133,18 +133,22 @@
               </div>
 
               <!-- Rol -->
-              <div class="form-group full">
-                <label for="id_rol">Rol del Usuario <span style="color:#f44336;">*</span></label>
-                <select id="id_rol" name="id_rol" required>
-                  <option value="">— Selecciona un rol —</option>
-                  <?php foreach ($roles as $rol): ?>
-                    <option value="<?= e((string)$rol['id_rol']) ?>"
-                      <?= (!empty($usuario['id_rol']) && (int)$rol['id_rol'] === (int)$usuario['id_rol']) ? 'selected' : '' ?>>
-                      <?= e($rol['nombre']) ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
+              <?php if (($_SESSION['rol'] ?? '') === 'Administrador'): ?>
+                <div class="form-group full">
+                  <label for="id_rol">Rol del Usuario <span style="color:#f44336;">*</span></label>
+                  <select id="id_rol" name="id_rol" required>
+                    <option value="">— Selecciona un rol —</option>
+                    <?php foreach ($roles as $rol): ?>
+                      <option value="<?= e((string)$rol['id_rol']) ?>"
+                        <?= (!empty($usuario['id_rol']) && (int)$rol['id_rol'] === (int)$usuario['id_rol']) ? 'selected' : '' ?>>
+                        <?= e($rol['nombre']) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              <?php else: ?>
+                <input type="hidden" name="id_rol" value="5">
+              <?php endif; ?>
 
               <!-- Estado activo -->
               <div class="form-group full form-checkbox">

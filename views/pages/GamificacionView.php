@@ -137,48 +137,165 @@ require_once 'views/layouts/header.php';
       <div class="card">
         <div class="card-header">
           <h3>Reconocimientos emitidos</h3>
-          <button class="btn btn-primary" onclick="openModal('modal-reconocimiento')">+ Nuevo reconocimiento</button>
+          <div style="display:flex;gap:8px;">
+            <select id="filtro-tipo-reconocimiento" onchange="filtrarReconocimientos()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+              <option value="">Todos los tipos</option>
+              <option value="diploma">Diploma</option>
+              <option value="carta">Carta</option>
+              <option value="certificado">Certificado</option>
+              <option value="voluntario_mes">Voluntario del Mes</option>
+              <option value="mayor_asistencia">Mayor Asistencia</option>
+              <option value="mayor_entregas">Mayor Entregas</option>
+              <option value="donador_destacado">Donador Destacado</option>
+              <option value="otro">Otro</option>
+            </select>
+            <button class="btn btn-primary" onclick="openModal('modal-reconocimiento')">+ Nuevo reconocimiento</button>
+          </div>
         </div>
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Donador</th>
-              <th>Campaña</th>
               <th>Tipo</th>
+              <th>Receptor</th>
               <th>Descripción</th>
-              <th>PDF</th>
-              <th>Fecha emisión</th>
+              <th>Campaña</th>
               <th>Emitido por</th>
+              <th>Fecha</th>
+              <th>PDF</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="tabla-reconocimientos">
             <tr>
               <td>#RC001</td>
+              <td><span class="badge badge-blue">Diploma</span></td>
               <td>María García</td>
+              <td>Reconocimiento por participación en campaña de invierno</td>
               <td>Invierno 2026</td>
-              <td><span class="badge badge-blue">Participación</span></td>
-              <td>Reconocimiento por apoyo en campaña</td>
-              <td><a href="#" style="color:var(--accent);font-size:11px;" onclick="showToast('Descarga de PDF simulada'); return false;">Descargar</a></td>
-              <td>2026-03-10</td>
               <td>Eva Sánchez</td>
+              <td>2026-03-10</td>
+              <td><a href="#" style="color:var(--accent);font-size:11px;">Descargar</a></td>
             </tr>
             <tr>
               <td>#RC002</td>
+              <td><span class="badge badge-gold">Donador Destacado</span></td>
               <td>Empresa Alfa</td>
-              <td>—</td>
-              <td><span class="badge badge-amber">Destacado</span></td>
               <td>Donador más activo del trimestre</td>
-              <td><a href="#" style="color:var(--accent);font-size:11px;" onclick="showToast('Descarga de PDF simulada'); return false;">Descargar</a></td>
-              <td>2026-03-15</td>
+              <td>—</td>
               <td>Eva Sánchez</td>
+              <td>2026-03-15</td>
+              <td><a href="#" style="color:var(--accent);font-size:11px;">Descargar</a></td>
             </tr>
           </tbody>
         </table>
       </div>
 
+      <!-- Modal para emitir reconocimiento -->
+      <div id="modal-reconocimiento" class="modal" style="display:none;">
+        <div class="modal-overlay" onclick="closeModal('modal-reconocimiento')"></div>
+        <div class="modal-content" style="width:90%;max-width:500px;">
+          <div class="modal-header">
+            <h3>Emitir Reconocimiento</h3>
+            <button onclick="closeModal('modal-reconocimiento')" class="modal-close">×</button>
+          </div>
+          <div class="modal-body" style="padding:20px;">
+            <form id="form-reconocimiento" onsubmit="emitirReconocimiento(event)">
+              <div class="form-group">
+                <label for="tipo-reconoc">Tipo de Reconocimiento <span style="color:#f44336;">*</span></label>
+                <select id="tipo-reconoc" name="tipo" required style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+                  <option value="">— Selecciona un tipo —</option>
+                  <option value="diploma">Diploma</option>
+                  <option value="carta">Carta</option>
+                  <option value="certificado">Certificado</option>
+                  <option value="voluntario_mes">Voluntario del Mes</option>
+                  <option value="mayor_asistencia">Mayor Asistencia</option>
+                  <option value="mayor_entregas">Mayor Entregas</option>
+                  <option value="donador_destacado">Donador Destacado</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Receptor <span style="color:#f44336;">*</span></label>
+                <div style="display:flex;gap:10px;margin-bottom:10px;">
+                  <label style="display:flex;align-items:center;gap:6px;">
+                    <input type="radio" name="tipo-receptor" value="donador" checked onchange="cambiarTipoReceptor()"> Donador
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;">
+                    <input type="radio" name="tipo-receptor" value="usuario" onchange="cambiarTipoReceptor()"> Usuario/Voluntario
+                  </label>
+                </div>
+                <input type="text" id="buscar-receptor" placeholder="Buscar por nombre o email..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;">
+                <select id="select-receptor" name="id_receptor" required style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+                  <option value="">— Selecciona —</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="desc-reconoc">Descripción</label>
+                <textarea id="desc-reconoc" name="descripcion" rows="3" placeholder="Describe brevemente el reconocimiento..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical;"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="campana-reconoc">Campaña (opcional)</label>
+                <select id="campana-reconoc" name="id_campana" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+                  <option value="">— Sin campaña asociada —</option>
+                  <option value="1">Campaña Invierno 2026</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="pdf-reconoc">Subir PDF (opcional)</label>
+                <input type="file" id="pdf-reconoc" name="archivo_pdf" accept=".pdf" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+              </div>
+
+              <div style="display:flex;gap:10px;margin-top:20px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">Emitir reconocimiento</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reconocimiento')" style="flex:1;">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<script>
+function filtrarReconocimientos() {
+  const tipo = document.getElementById('filtro-tipo-reconocimiento').value;
+  showToast('Filtro aplicado: ' + (tipo || 'Todos'));
+}
+
+function cambiarTipoReceptor() {
+  const tipo = document.querySelector('input[name="tipo-receptor"]:checked').value;
+  showToast('Buscando ' + (tipo === 'donador' ? 'donadores' : 'usuarios'));
+}
+
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function emitirReconocimiento(e) {
+  e.preventDefault();
+  const tipo = document.getElementById('tipo-reconoc').value;
+  const receptor = document.getElementById('select-receptor').value;
+  const descripcion = document.getElementById('desc-reconoc').value;
+  
+  if (!tipo || !receptor) {
+    showToast('Por favor completa los campos requeridos', 'error');
+    return;
+  }
+  
+  showToast('Reconocimiento emitido correctamente', 'success');
+  closeModal('modal-reconocimiento');
+  document.getElementById('form-reconocimiento').reset();
+}
+</script>
 
 <?php require_once 'views/layouts/footer.php'; ?>
