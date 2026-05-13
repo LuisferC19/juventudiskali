@@ -108,9 +108,8 @@ class BackupController
                 'Respaldo manual generado desde el panel.'
             );
 
-            // 4. Enviar el ZIP al navegador y eliminar
-            $this->descargarArchivo($zipFile, $filename);
-            unlink($zipFile);
+            // 4. Enviar el ZIP al navegador y eliminarlo después de la descarga
+            $this->descargarArchivo($zipFile, $filename, true);
 
         } catch (Exception $e) {
             session_write_close();
@@ -229,7 +228,7 @@ class BackupController
     //  Helper – fuerza la descarga del archivo
     // ─────────────────────────────────────────────
 
-    private function descargarArchivo(string $filepath, string $filename): void
+    private function descargarArchivo(string $filepath, string $filename, bool $deleteAfter = false): void
     {
         if (!file_exists($filepath)) {
             throw new Exception("Archivo no encontrado para descarga.");
@@ -247,6 +246,11 @@ class BackupController
         header('Content-Length: ' . filesize($filepath));
 
         readfile($filepath);
+
+        if ($deleteAfter && file_exists($filepath)) {
+            @unlink($filepath);
+        }
+
         exit;
     }
 }

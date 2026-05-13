@@ -92,10 +92,9 @@ function navActivo(string $pagina, string $actual): string {
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 2V4M8 12V14M2 8H4M12 8H14"/></svg>
       Seguimiento GPS
     </a>
-    <a href="#" class="nav-item" onclick="showToast('Módulo Quejas en construcción'); return false;">
+    <a href="#" class="nav-item" onclick="showToast('Módulo Quejas y Sugerencias en construcción'); return false;">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2H14V11H9L8 14L7 11H2Z"/></svg>
-      Quejas / Sugerencias
->>>>>>> 874b8bbb9a836883b4adbf057a61312725270b16
+      Quejas y Sugerencias
     </a>
     <a href="#" class="nav-item" onclick="showToast('Módulo Notificaciones en construcción'); return false;">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1C5 1 3 3.5 3 6V10L1 12H15L13 10V6C13 3.5 11 1 8 1Z"/><path d="M6 12C6 13.1 6.9 14 8 14S10 13.1 10 12"/></svg>

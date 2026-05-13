@@ -423,6 +423,19 @@ CREATE TABLE notificaciones (
     PRIMARY KEY (id_notificacion)
 );
 
+CREATE TABLE respaldos (
+    id                 INT          NOT NULL AUTO_INCREMENT,
+    tipo_operacion     ENUM('EXPORTACION','IMPORTACION') NOT NULL,
+    nombre_archivo     VARCHAR(255) NOT NULL,
+    formato            VARCHAR(20)  NOT NULL DEFAULT 'ZIP',
+    nombre_bd          VARCHAR(100) NOT NULL,
+    tamanio_bytes      BIGINT       NOT NULL DEFAULT 0,
+    usuario_id         INT          NULL,
+    observaciones      TEXT,
+    fechayhora         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
+
 -- ============================================================
 --  FOREIGN KEYS
 -- ============================================================
@@ -438,6 +451,10 @@ ALTER TABLE historial_accesos
 ALTER TABLE recuperacion_contrasena
     ADD CONSTRAINT fk_recuperacion_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario);
+
+ALTER TABLE respaldos
+    ADD CONSTRAINT fk_respaldos_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario);
 
 ALTER TABLE donadores
     ADD CONSTRAINT fk_donadores_nivel

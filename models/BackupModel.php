@@ -130,7 +130,7 @@ class BackupModel
         try {
             $sql = "SELECT r.*, u.nombre AS nombre_usuario
                     FROM respaldos r
-                    LEFT JOIN usuarios u ON u.id = r.usuario_id
+                    LEFT JOIN usuarios u ON u.id_usuario = r.usuario_id
                     ORDER BY r.fechayhora DESC
                     LIMIT :lim";
 

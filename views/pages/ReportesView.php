@@ -67,7 +67,7 @@ require_once 'views/layouts/header.php';
               Beneficiarios
             </h3>
             <p style="font-size:13px;color:var(--muted,#5a8a84);line-height:1.6;margin:0;">
-              Listado de beneficiarios con nombre, apellidos, edad, municipio y estatus de atención.
+              Listado de beneficiarios con nombre, tipo, edad, municipio y estatus de atención.
             </p>
           </div>
           <a href="<?= BASE_URL ?>/index.php?pagina=reportes&accion=generar&tipo=beneficiarios"

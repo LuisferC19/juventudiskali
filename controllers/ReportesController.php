@@ -130,9 +130,17 @@ class ReportesController
     private function pdfDonadores(): void
     {
         $stmt = $this->db->query(
-            "SELECT id, nombre, correo, telefono, tipo_donador, fecha_registro
-             FROM donadores
-             ORDER BY fecha_registro DESC"
+            "SELECT d.id_donador AS id,
+                    COALESCE(CONCAT(df.nombre, ' ', df.apellido), dm.razon_social, dg.nombre_grupo, 'Anónimo') AS nombre,
+                    d.email AS correo,
+                    d.telefono AS telefono,
+                    d.tipo_donante AS tipo_donador,
+                    d.created_at AS fecha_registro
+             FROM donadores d
+             LEFT JOIN donadores_fisicos df ON df.id_donador = d.id_donador
+             LEFT JOIN donadores_morales dm ON dm.id_donador = d.id_donador
+             LEFT JOIN donadores_grupos dg ON dg.id_donador = d.id_donador
+             ORDER BY d.created_at DESC"
         );
         $filas = $stmt->fetchAll();
 
@@ -183,9 +191,18 @@ class ReportesController
     private function pdfBeneficiarios(): void
     {
         $stmt = $this->db->query(
-            "SELECT id, nombre, apellidos, edad, municipio, estatus, fecha_registro
-             FROM beneficiarios
-             ORDER BY fecha_registro DESC"
+            "SELECT b.id_beneficiario AS id,
+                    COALESCE(CONCAT(bf.nombre, ' ', bf.apellido), bm.razon_social) AS nombre,
+                    b.tipo_persona AS tipo_persona,
+                    bf.edad AS edad,
+                    c.municipio AS municipio,
+                    b.estado AS estatus,
+                    b.created_at AS fecha_registro
+             FROM beneficiarios b
+             LEFT JOIN beneficiarios_fisicos bf ON bf.id_beneficiario = b.id_beneficiario
+             LEFT JOIN beneficiarios_morales bm ON bm.id_beneficiario = b.id_beneficiario
+             LEFT JOIN comunidades c ON c.id_comunidad = b.id_comunidad
+             ORDER BY b.created_at DESC"
         );
         $filas = $stmt->fetchAll();
 
@@ -198,7 +215,7 @@ class ReportesController
 
         $pdf->Cell(15,  9, '#',              1, 0, 'C', true);
         $pdf->Cell(60,  9, 'Nombre',         1, 0, 'L', true);
-        $pdf->Cell(60,  9, 'Apellidos',      1, 0, 'L', true);
+        $pdf->Cell(60,  9, 'Tipo',           1, 0, 'L', true);
         $pdf->Cell(18,  9, 'Edad',           1, 0, 'C', true);
         $pdf->Cell(52,  9, 'Municipio',      1, 0, 'L', true);
         $pdf->Cell(32,  9, 'Estatus',        1, 0, 'C', true);
@@ -213,7 +230,7 @@ class ReportesController
             $pdf->SetFillColor(240, 253, 251);
             $pdf->Cell(15,  8, $f['id'],                                   1, 0, 'C', $fill);
             $pdf->Cell(60,  8, utf8_decode($f['nombre'] ?? ''),            1, 0, 'L', $fill);
-            $pdf->Cell(60,  8, utf8_decode($f['apellidos'] ?? ''),         1, 0, 'L', $fill);
+            $pdf->Cell(60,  8, utf8_decode($f['tipo_persona'] ?? ''),      1, 0, 'L', $fill);
             $pdf->Cell(18,  8, $f['edad'] ?? '',                           1, 0, 'C', $fill);
             $pdf->Cell(52,  8, utf8_decode($f['municipio'] ?? ''),         1, 0, 'L', $fill);
             $pdf->Cell(32,  8, utf8_decode($f['estatus'] ?? ''),           1, 0, 'C', $fill);
@@ -237,7 +254,13 @@ class ReportesController
     private function pdfCampanas(): void
     {
         $stmt = $this->db->query(
-            "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, estatus, meta_monto
+            "SELECT id_campana AS id,
+                    nombre,
+                    descripcion,
+                    fecha_inicio,
+                    fecha_cierre AS fecha_fin,
+                    estado AS estatus,
+                    meta_economica AS meta_monto
              FROM campanas
              ORDER BY fecha_inicio DESC"
         );
