@@ -9,6 +9,10 @@
      MODALES GLOBALES (disponibles en todas las páginas)
      ══════════════════════════════════════════ -->
 
+<?php
+$_pagina_footer = $_GET['pagina'] ?? 'inicio';
+if (!in_array($_pagina_footer, ['inicio', 'login', 'auth'])): ?>
+
 <!-- Modal: Nueva donación -->
 <div class="modal-overlay" id="modal-donacion">
   <div class="modal">
@@ -256,6 +260,8 @@
     </div>
   </div>
 </div>
+
+<?php endif; // fin modales admin ?>
 
 <!-- ══════════════════════════════════════════
      TOAST (notificación tipo snackbar)
