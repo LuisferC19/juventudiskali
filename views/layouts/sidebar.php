@@ -1,11 +1,9 @@
 <?php
 /**
  * views/layouts/sidebar.php
- * Barra lateral de navegación principal.
- * Usa $pagina_activa para marcar el ítem actual como active.
+ * CAMBIO: el enlace "Reportes" ahora apunta a ?pagina=reportes en vez de showToast.
  */
 
-// Helper: devuelve 'active' si la página coincide
 function navActivo(string $pagina, string $actual): string {
     return $pagina === $actual ? 'active' : '';
 }
@@ -74,7 +72,13 @@ function navActivo(string $pagina, string $actual): string {
       Gamificación
     </a>
 
-    <!-- Elementos sin página propia: muestran toast al hacer clic -->
+    <!-- ── REPORTES: ahora es un enlace real ── -->
+    <a href="<?= BASE_URL ?>/index.php?pagina=reportes" class="nav-item <?= navActivo('reportes', $pagina_activa) ?>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4H14M2 8H10M2 12H7" stroke-linecap="round"/></svg>
+      Reportes
+    </a>
+
+    <!-- Módulos aún en construcción -->
     <a href="#" class="nav-item" onclick="showToast('Módulo GPS en construcción'); return false;">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 2V4M8 12V14M2 8H4M12 8H14"/></svg>
       Seguimiento GPS
@@ -90,10 +94,6 @@ function navActivo(string $pagina, string $actual): string {
     <a href="#" class="nav-item" onclick="showToast('Módulo Historial en construcción'); return false;">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5V8L10 10"/></svg>
       Historial accesos
-    </a>
-    <a href="#" class="nav-item" onclick="showToast('Módulo Reportes en construcción'); return false;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4H14M2 8H10M2 12H7" stroke-linecap="round"/></svg>
-      Reportes
     </a>
 
   </div><!-- /nav-section -->

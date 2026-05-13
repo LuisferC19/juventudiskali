@@ -1,27 +1,23 @@
 <?php
 /**
  * index.php — Router principal del sistema Iskali
- * Maneja todas las peticiones y redirige al controlador correcto.
+ * CAMBIOS: se añade accion=importar en respaldos, y el case 'reportes'.
  */
 
-// Cargar configuración global
 require_once 'config/app.php';
 require_once 'functions.php';
-require_once 'config/Database.php';   
+require_once 'config/Database.php';
 
-// Crear conexión PDO
 $db       = new Database();
 $conexion = $db->getConnection();
 
-// Obtener la página solicitada (por defecto: inicio)
 $pagina = $_GET['pagina'] ?? 'inicio';
 
-// Enrutador principal
 switch ($pagina) {
 
     case 'login':
         require_once 'controllers/AuthController.php';
-        (new AuthController($conexion))->login();   // ✅ pasa $conexion al controlador
+        (new AuthController($conexion))->login();
         break;
 
     case 'logout':
@@ -79,10 +75,27 @@ switch ($pagina) {
         (new DashboardController())->gamificacion();
         break;
 
+    // ── RESPALDOS ─────────────────────────────────────────────────────────
     case 'respaldos':
         require_once 'controllers/BackupController.php';
         $controller = new BackupController($conexion);
-        $accion = $_GET['accion'] ?? 'index';
+        $accion     = $_GET['accion'] ?? 'index';
+
+        if ($accion === 'generar') {
+            $controller->generar();
+        } elseif ($accion === 'importar') {       // ← NUEVO
+            $controller->importar();
+        } else {
+            $controller->index();
+        }
+        break;
+
+    // ── REPORTES (NUEVO) ──────────────────────────────────────────────────
+    case 'reportes':
+        require_once 'controllers/ReportesController.php';
+        $controller = new ReportesController($conexion);
+        $accion     = $_GET['accion'] ?? 'index';
+
         if ($accion === 'generar') {
             $controller->generar();
         } else {
@@ -97,7 +110,6 @@ switch ($pagina) {
         break;
 
     default:
-        // Ruta desconocida → redirigir a la landing (inicio)
         require_once 'controllers/InicioController.php';
         (new InicioController())->index();
         break;
