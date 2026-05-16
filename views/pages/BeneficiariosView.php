@@ -103,7 +103,9 @@ require_once 'views/layouts/header.php';
                     <td style="padding:12px;"><?= isset($beneficiario['created_at']) ? date('d/m/Y', strtotime($beneficiario['created_at'])) : '—' ?></td>
                     <td style="padding:12px;white-space:nowrap;">
                       <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=editar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>" class="btn btn-secondary btn-sm" style="margin:2px;">Editar</a>
-                      <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=borrar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>" class="btn btn-danger btn-sm" style="margin:2px;" onclick="return confirm('¿Eliminar este beneficiario?');">Eliminar</a>
+                      <form method="POST" action="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=borrar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>" style="display:inline; margin:0;">
+                        <button type="submit" class="btn btn-danger btn-sm" style="margin:2px;" onclick="return confirm('¿Eliminar este beneficiario?');">Eliminar</button>
+                      </form>
                     </td>
                   </tr>
                 <?php endforeach; ?>

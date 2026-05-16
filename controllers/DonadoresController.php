@@ -27,13 +27,9 @@ class DonadoresController {
                 $this->guardarNuevo();
             } elseif ($accion === 'editar' && $id) {
                 $this->guardarEdicion($id);
+            } elseif ($accion === 'eliminar' && $id) {
+                $this->eliminarDonador($id);
             }
-            return;
-        }
-
-        // Permitir eliminar donador también con GET para la interfaz actual
-        if ($accion === 'eliminar' && $id) {
-            $this->eliminarDonador($id);
             return;
         }
 
@@ -62,7 +58,8 @@ class DonadoresController {
     private function mostrarListado(): void {
         $donadores = $this->modelo->obtenerTodos();
         $mensaje = $_SESSION['donadores_mensaje'] ?? null;
-        unset($_SESSION['donadores_mensaje']);
+        $tipo_mensaje = $_SESSION['donadores_tipo'] ?? 'success';
+        unset($_SESSION['donadores_mensaje'], $_SESSION['donadores_tipo']);
 
         // Estadísticas para las tarjetas
         $total = $this->modelo->obtenerTotal();
@@ -92,6 +89,7 @@ class DonadoresController {
         
         if (!$donador) {
             $_SESSION['donadores_mensaje'] = 'Donador no encontrado.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
             exit;
         }
@@ -113,18 +111,21 @@ class DonadoresController {
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
             $_SESSION['donadores_mensaje'] = 'Tipo de donador inválido.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
             exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['donadores_mensaje'] = 'Email inválido.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
             exit;
         }
 
         if ($puntos < 0) {
             $_SESSION['donadores_mensaje'] = 'Los puntos no pueden ser negativos.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
             exit;
         }
@@ -157,8 +158,10 @@ class DonadoresController {
 
         if ($this->modelo->crear($tipoPersona, $email, $telefono, $puntos, $activo, $detalles)) {
             $_SESSION['donadores_mensaje'] = 'Donador creado correctamente.';
+            $_SESSION['donadores_tipo'] = 'success';
         } else {
             $_SESSION['donadores_mensaje'] = 'Error al crear el donador.';
+            $_SESSION['donadores_tipo'] = 'error';
         }
 
         header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
@@ -177,18 +180,21 @@ class DonadoresController {
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
             $_SESSION['donadores_mensaje'] = 'Tipo de donador inválido.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
             exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['donadores_mensaje'] = 'Email inválido.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
             exit;
         }
 
         if ($puntos < 0) {
             $_SESSION['donadores_mensaje'] = 'Los puntos no pueden ser negativos.';
+            $_SESSION['donadores_tipo'] = 'error';
             header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
             exit;
         }
@@ -221,8 +227,10 @@ class DonadoresController {
 
         if ($this->modelo->actualizar($id, $tipoPersona, $email, $telefono, $puntos, $activo, $detalles)) {
             $_SESSION['donadores_mensaje'] = 'Donador actualizado correctamente.';
+            $_SESSION['donadores_tipo'] = 'success';
         } else {
             $_SESSION['donadores_mensaje'] = 'Error al actualizar el donador.';
+            $_SESSION['donadores_tipo'] = 'error';
         }
 
         header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
@@ -235,8 +243,10 @@ class DonadoresController {
     private function eliminarDonador(int $id): void {
         if ($this->modelo->eliminar($id)) {
             $_SESSION['donadores_mensaje'] = 'Donador eliminado correctamente.';
+            $_SESSION['donadores_tipo'] = 'success';
         } else {
             $_SESSION['donadores_mensaje'] = 'Error al eliminar el donador.';
+            $_SESSION['donadores_tipo'] = 'error';
         }
 
         header('Location: ' . BASE_URL . '/index.php?pagina=donadores');

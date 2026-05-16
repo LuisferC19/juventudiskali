@@ -6,13 +6,19 @@
 class BeneficiarioModel
 {
     private PDO $db;
+    private ?string $ultimoError = null;
 
     public function __construct(PDO $conexion)
     {
         $this->db = $conexion;
     }
 
-    public function consultar(): array
+    public function getUltimoError(): ?string
+    {
+        return $this->ultimoError;
+    }
+
+    public function consultar(string $buscar = ''): array
     {
         $sql = "
             SELECT
@@ -44,10 +50,31 @@ class BeneficiarioModel
             LEFT JOIN beneficiarios_morales bm ON b.id_beneficiario = bm.id_beneficiario
             LEFT JOIN comunidades c ON b.id_comunidad = c.id_comunidad
             LEFT JOIN usuarios u ON b.id_usuario_registrador = u.id_usuario
+        ";
+
+        $params = [];
+        $buscar = trim((string)$buscar);
+        if ($buscar !== '') {
+            $sql .= "
+            WHERE (
+                LOWER(CONCAT(COALESCE(bf.nombre, ''), ' ', COALESCE(bf.apellido, ''))) LIKE ?
+                OR LOWER(COALESCE(bm.razon_social, '')) LIKE ?
+                OR LOWER(COALESCE(bf.curp, '')) LIKE ?
+                OR LOWER(COALESCE(bm.rfc, '')) LIKE ?
+                OR LOWER(COALESCE(c.nombre, '')) LIKE ?
+                OR LOWER(COALESCE(b.telefono, '')) LIKE ?
+                OR LOWER(COALESCE(b.estado, '')) LIKE ?
+            )";
+            $like = '%' . mb_strtolower($buscar, 'UTF-8') . '%';
+            $params = [$like, $like, $like, $like, $like, $like, $like];
+        }
+
+        $sql .= "
             ORDER BY b.id_beneficiario DESC
         ";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
@@ -57,6 +84,11 @@ class BeneficiarioModel
             SELECT
                 b.id_beneficiario,
                 b.tipo_persona,
+                CASE
+                    WHEN bf.id_beneficiario IS NOT NULL THEN CONCAT(bf.nombre, ' ', bf.apellido)
+                    WHEN bm.id_beneficiario IS NOT NULL THEN bm.razon_social
+                    ELSE 'Desconocido'
+                END AS nombre_completo,
                 COALESCE(bf.nombre, '') AS nombre,
                 COALESCE(bf.apellido, '') AS apellido,
                 COALESCE(bf.edad, NULL) AS edad,
@@ -172,6 +204,7 @@ class BeneficiarioModel
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
+            $this->ultimoError = $e->getMessage();
             return false;
         }
     }
@@ -241,6 +274,7 @@ class BeneficiarioModel
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
+            $this->ultimoError = $e->getMessage();
             return false;
         }
     }
@@ -250,12 +284,33 @@ class BeneficiarioModel
         try {
             $this->db->beginTransaction();
 
+            // Eliminar asignaciones de voluntarios relacionadas con entregas del beneficiario
+            $stmt = $this->db->prepare(
+                'DELETE FROM asignaciones_voluntario
+                 WHERE id_entrega IN (
+                     SELECT id_entrega FROM entregas WHERE id_beneficiario = ?
+                 )'
+            );
+            $stmt->execute([$id]);
+
+            // Eliminar entregas asociadas al beneficiario antes de borrar el registro principal
+            $stmt = $this->db->prepare('DELETE FROM entregas WHERE id_beneficiario = ?');
+            $stmt->execute([$id]);
+
             // Eliminar registros dependientes en beneficiario_tipos_apoyo
             $stmt = $this->db->prepare('DELETE FROM beneficiario_tipos_apoyo WHERE id_beneficiario = ?');
             $stmt->execute([$id]);
 
-            // Eliminar registros dependientes en quejas_sugerencias
-            $stmt = $this->db->prepare('DELETE FROM quejas_sugerencias WHERE id_benef_remitente = ?');
+            // Eliminar registros dependientes en quejas_sugerencias si existe la tabla
+            if ($this->tablaExiste('quejas_sugerencias')) {
+                $stmt = $this->db->prepare('DELETE FROM quejas_sugerencias WHERE id_benef_remitente = ?');
+                $stmt->execute([$id]);
+            }
+
+            // Asegurar eliminación de datos de tipo específico si la base de datos no aplica ON DELETE CASCADE
+            $stmt = $this->db->prepare('DELETE FROM beneficiarios_fisicos WHERE id_beneficiario = ?');
+            $stmt->execute([$id]);
+            $stmt = $this->db->prepare('DELETE FROM beneficiarios_morales WHERE id_beneficiario = ?');
             $stmt->execute([$id]);
 
             // Eliminar beneficiario
@@ -266,7 +321,17 @@ class BeneficiarioModel
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
+            $this->ultimoError = $e->getMessage();
             return false;
         }
+    }
+
+    private function tablaExiste(string $nombre): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"
+        );
+        $stmt->execute([$nombre]);
+        return (bool) $stmt->fetchColumn();
     }
 }

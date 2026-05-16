@@ -45,7 +45,6 @@
           $direccion       = $beneficiario['direccion']        ?? '';
           $telefono        = $beneficiario['telefono']         ?? '';
           $estado          = $beneficiario['estado']           ?? 'activo';
-          $notas           = $beneficiario['notas']            ?? '';
           ?>
 
           <form method="POST" action="<?= $formAction ?>" id="form-beneficiario" data-validate="true">
@@ -208,15 +207,6 @@
                     <option value="en_espera" <?= $estado === 'en_espera' ? 'selected' : '' ?>>En espera</option>
                     <option value="inactivo"  <?= $estado === 'inactivo'  ? 'selected' : '' ?>>Inactivo</option>
                   </select>
-                </div>
-
-                <div class="form-group full">
-                  <label for="notas">Notas adicionales</label>
-                  <textarea id="notas" name="notas" rows="3"
-                            placeholder="Información relevante sobre el beneficiario..."
-                            data-rules="max:500|no_special"
-                            style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;resize:vertical;"><?= e($notas) ?></textarea>
-                  <div class="field-error"></div>
                 </div>
 
               </div>

@@ -53,8 +53,11 @@ require_once 'views/layouts/header.php';
           </div>
         </div>
 
+        <?php $tipo_mensaje = $tipo_mensaje ?? 'success'; ?>
         <?php if (!empty($mensaje)): ?>
-          <div class="alert alert-success" role="alert"><?= htmlspecialchars($mensaje) ?></div>
+          <div class="alert <?= $tipo_mensaje === 'error' ? 'alert-danger' : 'alert-success' ?>" role="alert">
+            <?= htmlspecialchars($mensaje) ?>
+          </div>
         <?php endif; ?>
 
         <table id="tabla-donadores">
@@ -84,7 +87,9 @@ require_once 'views/layouts/header.php';
                 <td><?= $donador['activo'] ? 'Sí' : 'No' ?></td>
                 <td>
                   <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=editar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-secondary btn-sm">Editar</a>
-                  <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este donador?');">Eliminar</a>
+                  <form method="POST" action="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>" style="display:inline; margin:0;">
+                    <button type="submit" class="btn btn-danger btn-sm" style="margin:2px;" onclick="return confirm('¿Eliminar este donador?');">Eliminar</button>
+                  </form>
                 </td>
               </tr>
             <?php endforeach; ?>

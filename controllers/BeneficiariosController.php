@@ -43,7 +43,7 @@ class BeneficiariosController
             return;
         }
 
-        if ($accion === 'borrar' && $id && $metodo === 'GET') {
+        if ($accion === 'borrar' && $id && $metodo === 'POST') {
             $this->eliminar((int)$id);
             return;
         }
@@ -53,7 +53,8 @@ class BeneficiariosController
 
     private function listar(): void
     {
-        $beneficiarios = $this->modelo->consultar();
+        $buscar = trim((string)($_GET['q'] ?? ''));
+        $beneficiarios = $this->modelo->consultar($buscar);
         $total         = count($beneficiarios);
         $total_activos = $this->modelo->obtenerTotalActivos();
         $total_inactivos = max(0, $total - $total_activos);
@@ -64,6 +65,7 @@ class BeneficiariosController
         $tipo_mensaje = $_SESSION['beneficiarios_tipo']    ?? 'success';
         unset($_SESSION['beneficiarios_mensaje'], $_SESSION['beneficiarios_tipo']);
 
+        $consulta      = $buscar;
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Beneficiarios';
         require_once 'views/pages/BeneficiariosView.php';
