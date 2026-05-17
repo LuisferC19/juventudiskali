@@ -4,13 +4,17 @@
  * Controlador CRUD completo para el módulo de Usuarios.
  *
  * Rutas manejadas (todas bajo ?pagina=usuarios):
- *   GET  ?pagina=usuarios                      → lista de usuarios
- *   GET  ?pagina=usuarios&accion=nuevo         → formulario para crear
- *   POST ?pagina=usuarios&accion=crear         → guarda nuevo usuario
- *   GET  ?pagina=usuarios&accion=editar&id=N   → formulario de edición
- *   POST ?pagina=usuarios&accion=editar&id=N   → guarda cambios
- *   GET  ?pagina=usuarios&accion=borrar&id=N   → elimina usuario
+ *   GET  ?pagina=usuarios                         → lista de usuarios
+ *   GET  ?pagina=usuarios&accion=nuevo            → formulario para crear
+ *   POST ?pagina=usuarios&accion=crear            → guarda nuevo usuario
+ *   GET  ?pagina=usuarios&accion=editar&id=N      → formulario de edición
+ *   POST ?pagina=usuarios&accion=editar&id=N      → guarda cambios
+ *   POST ?pagina=usuarios&accion=borrar&id=N      → elimina usuario  ← CORREGIDO: requiere POST, no GET
  *   GET  ?pagina=usuarios&accion=desbloquear&id=N → resetea intentos fallidos
+ *
+ * CORRECCIÓN: El docblock anterior indicaba GET para "borrar", pero el código
+ * siempre exigió POST (para proteger contra borrados accidentales via link).
+ * Se corrigió el docblock para reflejar la implementación real.
  */
 require_once 'models/UsuarioModel.php';
 
@@ -32,6 +36,7 @@ class UsuariosController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador']);
 
         $accion = trim($_GET['accion'] ?? '');
         $id     = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
@@ -59,8 +64,8 @@ class UsuariosController
             return;
         }
 
-        // ── GET: Eliminar usuario
-        if ($accion === 'borrar' && $id && $metodo === 'GET') {
+        // ── POST: Eliminar usuario (requiere POST para evitar borrados por link/GET)
+        if ($accion === 'borrar' && $id && $metodo === 'POST') {
             $this->eliminar((int)$id);
             return;
         }
@@ -110,7 +115,6 @@ class UsuariosController
         $id_rol             = filter_var($_POST['id_rol'] ?? '', FILTER_VALIDATE_INT);
         $activo             = isset($_POST['activo']) ? true : false;
 
-        // Forzar id_rol=5 (Donador) si el usuario no es administrador
         if (($_SESSION['rol'] ?? '') !== 'Administrador') {
             $id_rol = 5;
         }
@@ -229,11 +233,13 @@ class UsuariosController
     }
 
     // =========================================================
-    //  DELETE — GET: Eliminar usuario
+    //  DELETE — POST: Eliminar usuario
     // =========================================================
 
     private function eliminar(int $id): void
     {
+        csrfVerify();
+
         $usuario = $this->modelo->consultarPorId($id);
 
         if (!$usuario) {
@@ -247,17 +253,14 @@ class UsuariosController
         $resultado = $this->modelo->eliminar($id);
 
         if ($resultado === true) {
-            // Eliminación física exitosa
             $this->redirigirConMensaje(
                 "Usuario <strong>{$usuario['nombre']} {$usuario['apellido']}</strong> eliminado correctamente.",
                 'success'
             );
         } else {
-            // Baja lógica: tenía registros de negocio vinculados (campañas, donaciones, etc.)
             $this->redirigirConMensaje(
                 "El usuario <strong>{$usuario['nombre']} {$usuario['apellido']}</strong> tiene registros vinculados " .
-                "(campañas, donaciones, beneficiarios, etc.) y no puede eliminarse físicamente. " .
-                "La cuenta fue <strong>desactivada</strong> en su lugar.",
+                "y no puede eliminarse físicamente. La cuenta fue <strong>desactivada</strong> en su lugar.",
                 'warning'
             );
         }
@@ -289,9 +292,6 @@ class UsuariosController
     //  HELPERS
     // =========================================================
 
-    /**
-     * Verifica sesión activa; si no hay, redirige al login.
-     */
     private function verificarSesion(): void
     {
         if (empty($_SESSION['id_usuario'])) {
@@ -300,9 +300,16 @@ class UsuariosController
         }
     }
 
-    /**
-     * Guarda un mensaje en sesión y redirige a la lista de usuarios.
-     */
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        $rolActual = $_SESSION['rol'] ?? '';
+        if (!in_array($rolActual, $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
     private function redirigirConMensaje(string $mensaje, string $tipo = 'success'): void
     {
         $_SESSION['usuarios_mensaje'] = $mensaje;

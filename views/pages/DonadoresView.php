@@ -78,17 +78,21 @@ require_once 'views/layouts/header.php';
             <?php foreach ($donadores as $donador): ?>
               <tr>
                 <td><?= e((string) $donador['id_donador']) ?></td>
-                <td><?= e($donador['nombre_completo']) ?></td>
-                <td><?= e(ucfirst($donador['tipo_persona'])) ?></td>
-                <td><?= e($donador['email']) ?></td>
+                <td><?= e($donador['nombre_completo'] ?? '') ?></td>
+                <td><?= e(ucfirst($donador['tipo_persona'] ?? '')) ?></td>
+                <td><?= e($donador['email'] ?? '') ?></td>
                 <td><?= e($donador['telefono'] ?? '-') ?></td>
                 <td><?= e((string) $donador['puntos_acumulados']) ?></td>
                 <td><?= e($donador['nivel'] ?? '—') ?></td>
                 <td><?= $donador['activo'] ? 'Sí' : 'No' ?></td>
                 <td>
                   <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=editar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-secondary btn-sm">Editar</a>
-                  <form method="POST" action="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>" style="display:inline; margin:0;">
-                    <button type="submit" class="btn btn-danger btn-sm" style="margin:2px;" onclick="return confirm('¿Eliminar este donador?');">Eliminar</button>
+                  <form method="POST"
+                        action="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>"
+                        style="display:inline;"
+                        onsubmit="return confirm('¿Eliminar este donador?');">
+                    <?= csrfField() ?>
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                   </form>
                 </td>
               </tr>

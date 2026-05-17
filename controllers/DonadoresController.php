@@ -1,28 +1,69 @@
 <?php
+/**
+ * controllers/DonadoresController.php
+ *
+ * CORRECCIONES:
+ * 1. Se añadió el método privado redirigirConMensaje() igual al patrón de
+ *    BeneficiariosController, eliminando la repetición de bloques
+ *    $_SESSION + header + exit en cada validación fallida.
+ * 2. Se corrigió el bug donde al fallar la validación de nombre/apellido
+ *    se guardaba 'donadores_mensaje' pero NO 'donadores_tipo', dejando el
+ *    tipo como null y mostrando el alert con estilo incorrecto en la vista.
+ */
 require_once 'models/DonadorModel.php';
 
-class DonadoresController {
+class DonadoresController
+{
     private DonadorModel $modelo;
 
-    public function __construct(PDO $conexion) {
+    public function __construct(PDO $conexion)
+    {
         $this->modelo = new DonadorModel($conexion);
     }
 
-    private function verificarSesion(): void {
+    private function verificarSesion(): void
+    {
         if (empty($_SESSION['id_usuario'])) {
             header('Location: ' . BASE_URL . '/index.php?pagina=login');
             exit;
         }
     }
 
-    public function index(): void {
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        $rolActual = $_SESSION['rol'] ?? '';
+        if (!in_array($rolActual, $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    /**
+     * Guarda un mensaje flash en sesión y redirige.
+     * Centraliza el patrón $_SESSION + header + exit para evitar olvidar
+     * el tipo de mensaje (error, success) en cada validación.
+     */
+    private function redirigirConMensaje(string $mensaje, string $tipo = 'success', string $url = ''): never
+    {
+        $_SESSION['donadores_mensaje'] = $mensaje;
+        $_SESSION['donadores_tipo']    = $tipo;
+        $destino = $url ?: BASE_URL . '/index.php?pagina=donadores';
+        header('Location: ' . $destino);
+        exit;
+    }
+
+    public function index(): void
+    {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador']);
 
-        $accion = $_GET['accion'] ?? 'listar';
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
+        $accion = trim($_GET['accion'] ?? 'listar');
+        $id     = sanitizeInt($_GET['id'] ?? null);
+        $metodo = $_SERVER['REQUEST_METHOD'];
 
-        // Procesar acciones POST
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // ── POST: crear, editar, eliminar ─────────────────────────────────
+        if ($metodo === 'POST') {
             if ($accion === 'crear') {
                 $this->guardarNuevo();
             } elseif ($accion === 'editar' && $id) {
@@ -33,17 +74,13 @@ class DonadoresController {
             return;
         }
 
-        // Procesar acciones GET
+        // ── GET: formularios y listado ────────────────────────────────────
         switch ($accion) {
             case 'crear':
                 $this->mostrarFormularioNuevo();
                 break;
             case 'editar':
-                if ($id) {
-                    $this->mostrarFormularioEdicion($id);
-                } else {
-                    $this->mostrarListado();
-                }
+                $id ? $this->mostrarFormularioEdicion($id) : $this->mostrarListado();
                 break;
             case 'listar':
             default:
@@ -52,18 +89,15 @@ class DonadoresController {
         }
     }
 
-    /**
-     * Mostrar listado de donadores
-     */
-    private function mostrarListado(): void {
-        $donadores = $this->modelo->obtenerTodos();
-        $mensaje = $_SESSION['donadores_mensaje'] ?? null;
-        $tipo_mensaje = $_SESSION['donadores_tipo'] ?? 'success';
+    private function mostrarListado(): void
+    {
+        $donadores    = $this->modelo->obtenerTodos();
+        $mensaje      = $_SESSION['donadores_mensaje'] ?? null;
+        $tipo_mensaje = $_SESSION['donadores_tipo']    ?? 'success';
         unset($_SESSION['donadores_mensaje'], $_SESSION['donadores_tipo']);
 
-        // Estadísticas para las tarjetas
-        $total = $this->modelo->obtenerTotal();
-        $total_activos = $this->modelo->obtenerTotalActivos();
+        $total          = $this->modelo->obtenerTotal();
+        $total_activos  = $this->modelo->obtenerTotalActivos();
         $total_por_tipo = $this->modelo->obtenerTotalPorTipo();
 
         $pagina_activa = 'donadores';
@@ -71,27 +105,20 @@ class DonadoresController {
         require_once 'views/pages/DonadoresView.php';
     }
 
-    /**
-     * Mostrar formulario para crear nuevo donador
-     */
-    private function mostrarFormularioNuevo(): void {
-        $donador = null;
+    private function mostrarFormularioNuevo(): void
+    {
+        $donador       = null;
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Nuevo Donador';
         require_once 'views/pages/Donadores_FormView.php';
     }
 
-    /**
-     * Mostrar formulario para editar donador
-     */
-    private function mostrarFormularioEdicion(int $id): void {
+    private function mostrarFormularioEdicion(int $id): void
+    {
         $donador = $this->modelo->obtenerPorId($id);
-        
+
         if (!$donador) {
-            $_SESSION['donadores_mensaje'] = 'Donador no encontrado.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
-            exit;
+            $this->redirigirConMensaje('Donador no encontrado.', 'error');
         }
 
         $pagina_activa = 'donadores';
@@ -99,157 +126,121 @@ class DonadoresController {
         require_once 'views/pages/Donadores_FormView.php';
     }
 
-    /**
-     * Guardar nuevo donador (POST)
-     */
-    private function guardarNuevo(): void {
+    private function guardarNuevo(): void
+    {
+        csrfVerify();
+
         $tipoPersona = trim($_POST['tipo_persona'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $telefono = trim($_POST['telefono'] ?? '');
-        $puntos = (int) ($_POST['puntos_acumulados'] ?? 0);
-        $activo = isset($_POST['activo']) ? true : false;
+        $email       = trim($_POST['email']        ?? '');
+        $telefono    = trim($_POST['telefono']      ?? '');
+        $puntos      = (int)($_POST['puntos_acumulados'] ?? 0);
+        $activo      = isset($_POST['activo']);
+
+        $urlCrear = BASE_URL . '/index.php?pagina=donadores&accion=crear';
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
-            $_SESSION['donadores_mensaje'] = 'Tipo de donador inválido.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
-            exit;
+            $this->redirigirConMensaje('Tipo de donador inválido.', 'error', $urlCrear);
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['donadores_mensaje'] = 'Email inválido.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
-            exit;
+            $this->redirigirConMensaje('Email inválido.', 'error', $urlCrear);
         }
 
         if ($puntos < 0) {
-            $_SESSION['donadores_mensaje'] = 'Los puntos no pueden ser negativos.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
-            exit;
+            $this->redirigirConMensaje('Los puntos no pueden ser negativos.', 'error', $urlCrear);
         }
 
         $detalles = [];
 
         if ($tipoPersona === 'fisica') {
-            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
-            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
-            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['nombre']           = trim($_POST['nombre']   ?? '');
+            $detalles['apellido']         = trim($_POST['apellido'] ?? '');
+            $detalles['curp']             = trim($_POST['curp']     ?? '');
             $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
 
             if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
-                $_SESSION['donadores_mensaje'] = 'El nombre y apellido son requeridos.';
-                header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
-                exit;
+                // CORRECCIÓN: antes faltaba el tipo 'error' aquí
+                $this->redirigirConMensaje('El nombre y apellido son requeridos.', 'error', $urlCrear);
             }
         } else {
-            $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
-            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+            $detalles['razon_social']        = trim($_POST['razon_social']        ?? '');
+            $detalles['rfc']                 = trim($_POST['rfc']                 ?? '');
             $detalles['representante_legal'] = trim($_POST['representante_legal'] ?? '');
-            $detalles['giro_comercial'] = trim($_POST['giro_comercial'] ?? '');
+            $detalles['giro_comercial']      = trim($_POST['giro_comercial']      ?? '');
 
             if (empty($detalles['razon_social'])) {
-                $_SESSION['donadores_mensaje'] = 'La razón social es requerida.';
-                header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=crear');
-                exit;
+                $this->redirigirConMensaje('La razón social es requerida.', 'error', $urlCrear);
             }
         }
 
         if ($this->modelo->crear($tipoPersona, $email, $telefono, $puntos, $activo, $detalles)) {
-            $_SESSION['donadores_mensaje'] = 'Donador creado correctamente.';
-            $_SESSION['donadores_tipo'] = 'success';
+            $this->redirigirConMensaje('Donador creado correctamente.', 'success');
         } else {
-            $_SESSION['donadores_mensaje'] = 'Error al crear el donador.';
-            $_SESSION['donadores_tipo'] = 'error';
+            $this->redirigirConMensaje('Error al crear el donador.', 'error');
         }
-
-        header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
-        exit;
     }
 
-    /**
-     * Guardar cambios de donador existente (POST)
-     */
-    private function guardarEdicion(int $id): void {
+    private function guardarEdicion(int $id): void
+    {
+        csrfVerify();
+
         $tipoPersona = trim($_POST['tipo_persona'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $telefono = trim($_POST['telefono'] ?? '');
-        $puntos = (int) ($_POST['puntos_acumulados'] ?? 0);
-        $activo = isset($_POST['activo']) ? true : false;
+        $email       = trim($_POST['email']        ?? '');
+        $telefono    = trim($_POST['telefono']      ?? '');
+        $puntos      = (int)($_POST['puntos_acumulados'] ?? 0);
+        $activo      = isset($_POST['activo']);
+
+        $urlEditar = BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id;
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
-            $_SESSION['donadores_mensaje'] = 'Tipo de donador inválido.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
-            exit;
+            $this->redirigirConMensaje('Tipo de donador inválido.', 'error', $urlEditar);
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['donadores_mensaje'] = 'Email inválido.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
-            exit;
+            $this->redirigirConMensaje('Email inválido.', 'error', $urlEditar);
         }
 
         if ($puntos < 0) {
-            $_SESSION['donadores_mensaje'] = 'Los puntos no pueden ser negativos.';
-            $_SESSION['donadores_tipo'] = 'error';
-            header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
-            exit;
+            $this->redirigirConMensaje('Los puntos no pueden ser negativos.', 'error', $urlEditar);
         }
 
         $detalles = [];
 
         if ($tipoPersona === 'fisica') {
-            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
-            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
-            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['nombre']           = trim($_POST['nombre']   ?? '');
+            $detalles['apellido']         = trim($_POST['apellido'] ?? '');
+            $detalles['curp']             = trim($_POST['curp']     ?? '');
             $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
 
             if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
-                $_SESSION['donadores_mensaje'] = 'El nombre y apellido son requeridos.';
-                header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
-                exit;
+                $this->redirigirConMensaje('El nombre y apellido son requeridos.', 'error', $urlEditar);
             }
         } else {
-            $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
-            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+            $detalles['razon_social']        = trim($_POST['razon_social']        ?? '');
+            $detalles['rfc']                 = trim($_POST['rfc']                 ?? '');
             $detalles['representante_legal'] = trim($_POST['representante_legal'] ?? '');
-            $detalles['giro_comercial'] = trim($_POST['giro_comercial'] ?? '');
+            $detalles['giro_comercial']      = trim($_POST['giro_comercial']      ?? '');
 
             if (empty($detalles['razon_social'])) {
-                $_SESSION['donadores_mensaje'] = 'La razón social es requerida.';
-                header('Location: ' . BASE_URL . '/index.php?pagina=donadores&accion=editar&id=' . $id);
-                exit;
+                $this->redirigirConMensaje('La razón social es requerida.', 'error', $urlEditar);
             }
         }
 
         if ($this->modelo->actualizar($id, $tipoPersona, $email, $telefono, $puntos, $activo, $detalles)) {
-            $_SESSION['donadores_mensaje'] = 'Donador actualizado correctamente.';
-            $_SESSION['donadores_tipo'] = 'success';
+            $this->redirigirConMensaje('Donador actualizado correctamente.', 'success');
         } else {
-            $_SESSION['donadores_mensaje'] = 'Error al actualizar el donador.';
-            $_SESSION['donadores_tipo'] = 'error';
+            $this->redirigirConMensaje('Error al actualizar el donador.', 'error');
         }
-
-        header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
-        exit;
     }
 
-    /**
-     * Eliminar un donador
-     */
-    private function eliminarDonador(int $id): void {
-        if ($this->modelo->eliminar($id)) {
-            $_SESSION['donadores_mensaje'] = 'Donador eliminado correctamente.';
-            $_SESSION['donadores_tipo'] = 'success';
-        } else {
-            $_SESSION['donadores_mensaje'] = 'Error al eliminar el donador.';
-            $_SESSION['donadores_tipo'] = 'error';
-        }
+    private function eliminarDonador(int $id): void
+    {
+        csrfVerify();
 
-        header('Location: ' . BASE_URL . '/index.php?pagina=donadores');
-        exit;
+        if ($this->modelo->eliminar($id)) {
+            $this->redirigirConMensaje('Donador eliminado correctamente.', 'success');
+        } else {
+            $this->redirigirConMensaje('Error al eliminar el donador.', 'error');
+        }
     }
 }

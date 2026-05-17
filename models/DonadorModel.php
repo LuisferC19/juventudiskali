@@ -22,7 +22,7 @@ class DonadorModel {
                     WHEN dm.id_donador IS NOT NULL THEN 'Moral'
                     ELSE 'Desconocido'
                 END AS tipo_persona,
-                COALESCE(dm.razon_social, CONCAT(df.nombre, ' ', df.apellido)) AS nombre_completo,
+                COALESCE(dm.razon_social, CONCAT(COALESCE(df.nombre, ''), ' ', COALESCE(df.apellido, ''))) AS nombre_completo,
                 COALESCE(df.nombre, '') AS nombre,
                 COALESCE(df.apellido, '') AS apellido,
                 COALESCE(dm.razon_social, '') AS razon_social,

@@ -1,6 +1,11 @@
 <?php
 /**
  * config/Database.php — Conexión PDO a MySQL
+ *
+ * MEJORAS:
+ * - En producción ya no expone el mensaje técnico del PDOException al navegador.
+ *   En su lugar lo registra en el log y muestra un mensaje genérico amigable.
+ * - Se detecta el entorno mediante la constante APP_DEBUG (definida en app.php).
  */
 class Database
 {
@@ -8,11 +13,11 @@ class Database
 
     public function __construct()
     {
-        // ✅ Ruta ABSOLUTA al env.php (antes usaba ruta relativa y fallaba)
         $envPath = dirname(__DIR__) . '/env.php';
 
         if (!file_exists($envPath)) {
-            die("Error: No se encontró env.php en: " . $envPath);
+            // Este mensaje sí puede mostrarse porque no expone datos sensibles
+            die('Error de configuración: no se encontró el archivo env.php.');
         }
 
         $env = require $envPath;
@@ -28,8 +33,15 @@ class Database
         try {
             $this->pdo = new PDO($dsn, $env['DB_USER'], $env['DB_PASS'], $options);
         } catch (PDOException $e) {
-            // En desarrollo muestra el error real para depurar
-            die("Error de conexión: " . $e->getMessage());
+            // Registrar el error real en el log (nunca al usuario)
+            logger('ERROR DB: ' . $e->getMessage());
+
+            // En desarrollo (APP_DEBUG = true) mostrar detalle; en producción, mensaje genérico
+            if (defined('APP_DEBUG') && APP_DEBUG === true) {
+                die('Error de conexión (modo debug): ' . $e->getMessage());
+            }
+
+            die('No se pudo conectar a la base de datos. Por favor intenta más tarde.');
         }
     }
 

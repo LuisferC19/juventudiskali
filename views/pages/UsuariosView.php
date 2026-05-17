@@ -32,7 +32,6 @@
       <div class="card">
         <div class="card-header">
           <h3>
-            <img src="<?= BASE_URL ?>/public/iconos/icons8-guardar-50.png" alt="Usuarios" class="icon-img">
             Gestión de Usuarios
           </h3>
           <div class="toolbar">
@@ -44,7 +43,7 @@
               oninput="filtrarTabla(this,'tabla-usuarios')"
             >
             <button class="btn btn-primary btn-icon" onclick="openModal('modal-crear-usuario')">
-              <img src="<?= BASE_URL ?>/public/iconos/icons8-añadir-50.png" alt="Nuevo" class="icon-img">
+             <img src="<?= BASE_URL ?>/public/iconos/nuevo.png" alt="Nuevo" style="width:16px;height:16px;">
               Nuevo Usuario
             </button>
           </div>
@@ -155,14 +154,14 @@
                       </a>
 
                       <?php if ((int)$u['id_usuario'] !== (int)$_SESSION['id_usuario']): ?>
-                        <!-- Botón Eliminar (solo si no es el usuario actual) -->
-                        <a href="<?= BASE_URL ?>/index.php?pagina=usuarios&accion=borrar&id=<?= e((string)$u['id_usuario']) ?>"
-                           class="btn btn-danger btn-sm"
-                           title="Eliminar usuario"
-                           style="margin:2px;"
-                           onclick="return confirm('¿Eliminar a <?= e($u['nombre']) ?> <?= e($u['apellido']) ?>?\nEsta acción no se puede deshacer.');">
-                          ✕ Borrar
-                        </a>
+                        <!-- Formulario para Eliminar (solo si no es el usuario actual) -->
+                        <form method="POST" action="<?= BASE_URL ?>/index.php?pagina=usuarios&accion=borrar" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este usuario?');">
+                          <?= csrfField() ?>
+                          <input type="hidden" name="id" value="<?= e((string)$u['id_usuario']) ?>">
+                          <button type="submit" class="btn btn-danger btn-sm" title="Eliminar usuario" style="margin:2px;">
+                            ✕ Borrar
+                          </button>
+                        </form>
                       <?php endif; ?>
 
                       <?php if ((int)$u['intentos_fallidos'] >= 5): ?>
@@ -206,7 +205,7 @@
 
     <div class="modal-header">
       <h3>
-        <img src="<?= BASE_URL ?>/public/iconos/icons8-añadir-50.png" alt="" class="icon-img" style="width:24px;height:24px;">
+        <img src="<?= BASE_URL ?>/public/iconos/agregar_usuario_circulo.png" alt="Nuevo usuario" style="width:24px;height:24px;">
         Crear Nuevo Usuario
       </h3>
       <button class="btn btn-secondary btn-sm btn-icon" onclick="closeModal('modal-crear-usuario')">✕</button>
@@ -296,7 +295,7 @@
           Cancelar
         </button>
         <button type="submit" class="btn btn-primary">
-          <img src="<?= BASE_URL ?>/public/iconos/icons8-guardar-50.png" alt="" class="icon-img" style="width:16px;height:16px;">
+         <img src="<?= BASE_URL ?>/public/iconos/aprobado_carpeta.png" alt="Guardar" style="width:16px;height:16px;">
           Guardar Usuario
         </button>
       </div>

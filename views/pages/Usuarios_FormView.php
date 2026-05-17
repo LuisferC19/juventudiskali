@@ -19,7 +19,7 @@
 
         <div class="card-header">
           <h3>
-            <img src="<?= BASE_URL ?>/public/iconos/icons8-guardar-50.png" alt="" class="icon-img">
+ <img src="<?= BASE_URL ?>/public/iconos/avatar_usuario.png" alt="Usuario" style="width:20px;height:20px;">
             <?= $accion === 'editar' ? 'Editar Usuario' : 'Nuevo Usuario' ?>
           </h3>
         </div>
@@ -169,7 +169,7 @@
                 ← Volver a la Lista
               </a>
               <button type="submit" class="btn btn-primary">
-                <img src="<?= BASE_URL ?>/public/iconos/icons8-guardar-50.png" alt="" class="icon-img" style="width:16px;height:16px;">
+    <img src="<?= BASE_URL ?>/public/iconos/aprobado_carpeta.png" alt="Guardar" style="width:16px;height:16px;">
                 <?= $accion === 'editar' ? 'Guardar Cambios' : 'Crear Usuario' ?>
               </button>
             </div>

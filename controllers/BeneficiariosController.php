@@ -1,7 +1,10 @@
 <?php
 /**
  * controllers/BeneficiariosController.php
- * Controlador CRUD para beneficiarios.
+ *
+ * - "borrar" requiere POST (no GET).
+ * - Verificación CSRF en crear, actualizar y borrar.
+ * - sanitizeInt() para leer el ID.
  */
 require_once 'models/BeneficiarioModel.php';
 
@@ -19,9 +22,10 @@ class BeneficiariosController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador']);
 
         $accion = trim($_GET['accion'] ?? '');
-        $id     = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
+        $id     = sanitizeInt($_GET['id'] ?? null);
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         if ($accion === 'crear' && $metodo === 'POST') {
@@ -36,15 +40,16 @@ class BeneficiariosController
 
         if ($accion === 'editar' && $id) {
             if ($metodo === 'POST') {
-                $this->actualizar((int)$id);
+                $this->actualizar($id);
             } else {
-                $this->formularioEditar((int)$id);
+                $this->formularioEditar($id);
             }
             return;
         }
 
+        // borrar requiere POST (no GET)
         if ($accion === 'borrar' && $id && $metodo === 'POST') {
-            $this->eliminar((int)$id);
+            $this->eliminar($id);
             return;
         }
 
@@ -53,13 +58,13 @@ class BeneficiariosController
 
     private function listar(): void
     {
-        $buscar = trim((string)($_GET['q'] ?? ''));
-        $beneficiarios = $this->modelo->consultar($buscar);
-        $total         = count($beneficiarios);
-        $total_activos = $this->modelo->obtenerTotalActivos();
+        $buscar          = trim((string)($_GET['q'] ?? ''));
+        $beneficiarios   = $this->modelo->consultar($buscar);
+        $total           = count($beneficiarios);
+        $total_activos   = $this->modelo->obtenerTotalActivos();
         $total_inactivos = max(0, $total - $total_activos);
-        $total_fisica  = $this->modelo->obtenerTotalPorTipo('fisica');
-        $total_moral   = $this->modelo->obtenerTotalPorTipo('moral');
+        $total_fisica    = $this->modelo->obtenerTotalPorTipo('fisica');
+        $total_moral     = $this->modelo->obtenerTotalPorTipo('moral');
 
         $mensaje      = $_SESSION['beneficiarios_mensaje'] ?? null;
         $tipo_mensaje = $_SESSION['beneficiarios_tipo']    ?? 'success';
@@ -73,12 +78,14 @@ class BeneficiariosController
 
     private function crear(): void
     {
-        $tipoPersona = trim((string)($_POST['tipo_persona'] ?? ''));
+        csrfVerify();
+
+        $tipoPersona  = trim((string)($_POST['tipo_persona'] ?? ''));
         $id_comunidad = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
-        $direccion = trim((string)($_POST['direccion'] ?? ''));
-        $telefono = trim((string)($_POST['telefono'] ?? ''));
-        $estado = trim((string)($_POST['estado'] ?? ''));
-        $registrador = (int)$_SESSION['id_usuario'];
+        $direccion    = trim((string)($_POST['direccion'] ?? ''));
+        $telefono     = trim((string)($_POST['telefono'] ?? ''));
+        $estado       = trim((string)($_POST['estado'] ?? ''));
+        $registrador  = (int)$_SESSION['id_usuario'];
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
             $this->redirigirConMensaje('Tipo de persona inválido.', 'error');
@@ -95,10 +102,10 @@ class BeneficiariosController
 
         $detalles = [];
         if ($tipoPersona === 'fisica') {
-            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
-            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
-            $detalles['edad'] = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
-            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['nombre']           = trim($_POST['nombre'] ?? '');
+            $detalles['apellido']         = trim($_POST['apellido'] ?? '');
+            $detalles['edad']             = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
+            $detalles['curp']             = strtoupper(trim($_POST['curp'] ?? ''));
             $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
 
             if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
@@ -110,7 +117,7 @@ class BeneficiariosController
             }
         } else {
             $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
-            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+            $detalles['rfc']          = strtoupper(trim($_POST['rfc'] ?? ''));
 
             if (empty($detalles['razon_social'])) {
                 $this->redirigirConMensaje('La razón social es obligatoria.', 'error');
@@ -118,7 +125,7 @@ class BeneficiariosController
         }
 
         if ($this->modelo->insertar($tipoPersona, $id_comunidad, $direccion, $telefono, $estado, $registrador, $detalles)) {
-            $this->redirigirConMensaje("Beneficiario creado correctamente.", 'success');
+            $this->redirigirConMensaje('Beneficiario creado correctamente.', 'success');
         }
 
         $this->redirigirConMensaje('Error al crear el beneficiario. Intenta nuevamente.', 'error');
@@ -151,17 +158,19 @@ class BeneficiariosController
 
     private function actualizar(int $id): void
     {
+        csrfVerify();
+
         $beneficiario = $this->modelo->consultarPorId($id);
 
         if (!$beneficiario) {
             $this->redirigirConMensaje('Beneficiario no encontrado.', 'error');
         }
 
-        $tipoPersona = trim((string)($_POST['tipo_persona'] ?? ''));
+        $tipoPersona  = trim((string)($_POST['tipo_persona'] ?? ''));
         $id_comunidad = filter_var($_POST['id_comunidad'] ?? '', FILTER_VALIDATE_INT);
-        $direccion = trim((string)($_POST['direccion'] ?? ''));
-        $telefono = trim((string)($_POST['telefono'] ?? ''));
-        $estado = trim((string)($_POST['estado'] ?? ''));
+        $direccion    = trim((string)($_POST['direccion'] ?? ''));
+        $telefono     = trim((string)($_POST['telefono'] ?? ''));
+        $estado       = trim((string)($_POST['estado'] ?? ''));
 
         if (!in_array($tipoPersona, ['fisica', 'moral'], true)) {
             $this->redirigirConMensaje('Tipo de persona inválido.', 'error');
@@ -178,10 +187,10 @@ class BeneficiariosController
 
         $detalles = [];
         if ($tipoPersona === 'fisica') {
-            $detalles['nombre'] = trim($_POST['nombre'] ?? '');
-            $detalles['apellido'] = trim($_POST['apellido'] ?? '');
-            $detalles['edad'] = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
-            $detalles['curp'] = trim($_POST['curp'] ?? '');
+            $detalles['nombre']           = trim($_POST['nombre'] ?? '');
+            $detalles['apellido']         = trim($_POST['apellido'] ?? '');
+            $detalles['edad']             = isset($_POST['edad']) ? filter_var($_POST['edad'], FILTER_VALIDATE_INT) : null;
+            $detalles['curp']             = strtoupper(trim($_POST['curp'] ?? ''));
             $detalles['fecha_nacimiento'] = trim($_POST['fecha_nacimiento'] ?? '');
 
             if (empty($detalles['nombre']) || empty($detalles['apellido'])) {
@@ -193,7 +202,7 @@ class BeneficiariosController
             }
         } else {
             $detalles['razon_social'] = trim($_POST['razon_social'] ?? '');
-            $detalles['rfc'] = trim($_POST['rfc'] ?? '');
+            $detalles['rfc']          = strtoupper(trim($_POST['rfc'] ?? ''));
 
             if (empty($detalles['razon_social'])) {
                 $this->redirigirConMensaje('La razón social es obligatoria.', 'error');
@@ -201,7 +210,7 @@ class BeneficiariosController
         }
 
         if ($this->modelo->actualizar($id, $tipoPersona, $id_comunidad, $direccion, $telefono, $estado, $detalles)) {
-            $this->redirigirConMensaje("Beneficiario actualizado correctamente.", 'success');
+            $this->redirigirConMensaje('Beneficiario actualizado correctamente.', 'success');
         }
 
         $this->redirigirConMensaje('Error al actualizar el beneficiario. Intenta nuevamente.', 'error');
@@ -209,6 +218,8 @@ class BeneficiariosController
 
     private function eliminar(int $id): void
     {
+        csrfVerify();
+
         $beneficiario = $this->modelo->consultarPorId($id);
 
         if (!$beneficiario) {
@@ -216,7 +227,8 @@ class BeneficiariosController
         }
 
         if ($this->modelo->eliminar($id)) {
-            $this->redirigirConMensaje("Beneficiario <strong>{$beneficiario['nombre_completo']}</strong> eliminado correctamente.", 'success');
+            $nombre = e($beneficiario['nombre_completo']);
+            $this->redirigirConMensaje("Beneficiario <strong>{$nombre}</strong> eliminado correctamente.", 'success');
         }
 
         $this->redirigirConMensaje('Error al eliminar el beneficiario. Intenta nuevamente.', 'error');
@@ -230,7 +242,15 @@ class BeneficiariosController
         }
     }
 
-    private function redirigirConMensaje(string $mensaje, string $tipo = 'success'): void
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    private function redirigirConMensaje(string $mensaje, string $tipo = 'success'): never
     {
         $_SESSION['beneficiarios_mensaje'] = $mensaje;
         $_SESSION['beneficiarios_tipo']    = $tipo;

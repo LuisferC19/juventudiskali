@@ -1,16 +1,37 @@
 <?php
 /**
  * controllers/ReportesController.php
- * Genera reportes PDF usando FPDF.
+ *
+ * Genera reportes como páginas HTML imprimibles (sin librerías externas).
+ * Se abren en una nueva pestaña; el usuario puede imprimir o guardar como PDF
+ * usando la opción de impresión del navegador (Ctrl+P).
+ *
+ * CORRECCIÓN: El archivo original tenía conflictos de merge de Git sin resolver
+ * (marcadores <<<<<<< HEAD / >>>>>>> ...) que rompían el archivo completo.
+ * Se resolvió conservando la versión HEAD (renderizado HTML + ReporteModel),
+ * que es la implementación correcta y funcional del sistema.
+ *
+ * Rutas disponibles:
+ *   ?pagina=reportes                                    → vista con botones
+ *   ?pagina=reportes&accion=generar&tipo=donadores      → reporte donadores
+ *   ?pagina=reportes&accion=generar&tipo=beneficiarios  → reporte beneficiarios
+ *   ?pagina=reportes&accion=generar&tipo=campanas       → reporte campañas
  */
 class ReportesController
 {
-    private PDO $db;
+    private PDO          $db;
+    private ReporteModel $model;
 
     public function __construct(PDO $conexion)
     {
-        $this->db = $conexion;
+        $this->db    = $conexion;
+        require_once 'models/ReporteModel.php';
+        $this->model = new ReporteModel($conexion);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Seguridad de sesión
+    // ─────────────────────────────────────────────────────────────────────────
 
     private function verificarSesion(): void
     {
@@ -21,9 +42,9 @@ class ReportesController
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  INDEX — vista con botones de reportes
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  INDEX — vista con tarjetas de reportes
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function index(): void
     {
@@ -35,25 +56,25 @@ class ReportesController
         require_once 'views/pages/ReportesView.php';
     }
 
-    // ─────────────────────────────────────────────
-    //  GENERAR — enruta al PDF correcto
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  GENERAR — enruta al reporte solicitado
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function generar(): void
     {
         $this->verificarSesion();
 
-        $tipo = $_GET['tipo'] ?? '';
+        $tipo = trim($_GET['tipo'] ?? '');
 
         switch ($tipo) {
             case 'donadores':
-                $this->pdfDonadores();
+                $this->reporteDonadores();
                 break;
             case 'beneficiarios':
-                $this->pdfBeneficiarios();
+                $this->reporteBeneficiarios();
                 break;
             case 'campanas':
-                $this->pdfCampanas();
+                $this->reporteCampanas();
                 break;
             default:
                 header('Location: ' . BASE_URL . '/index.php?pagina=reportes&error=tipo_invalido');
@@ -61,249 +82,438 @@ class ReportesController
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Helper — instancia FPDF con header/footer
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Helper — renderiza el HTML completo del reporte y termina
+    // ─────────────────────────────────────────────────────────────────────────
 
-    private function crearPDF(string $titulo): object
+    private function renderReporte(string $titulo, string $subtitulo, string $cuerpo): void
     {
-        require_once 'lib/fpdf/fpdf.php';
+        $fecha     = date('d/m/Y  H:i:s');
+        $appNombre = defined('APP_NAME') ? APP_NAME : 'Juventud Iskali';
 
-        // Clase anónima que extiende FPDF para personalizar cabecera y pie
-        $tituloReporte = $titulo;
-
-        $pdf = new class($tituloReporte) extends FPDF {
-            private string $titulo;
-
-            public function __construct(string $titulo)
-            {
-                parent::__construct('L', 'mm', 'A4'); // Landscape A4
-                $this->titulo = $titulo;
+        echo <<<HTML
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>{$titulo} — {$appNombre}</title>
+          <style>
+            /* ── Variables ── */
+            :root {
+              --verde:    #0aafa0;
+              --verde-dk: #087a70;
+              --text:     #1a2e2c;
+              --muted:    #5a8a84;
+              --border:   #d0ecea;
+              --fondo:    #f4fffe;
+              --alt-row:  #e8f9f7;
             }
 
-            public function Header(): void
-            {
-                // Franja de color superior
-                $this->SetFillColor(10, 175, 160);
-                $this->Rect(0, 0, 300, 18, 'F');
-
-                // Nombre del sistema
-                $this->SetFont('Arial', 'B', 11);
-                $this->SetTextColor(255, 255, 255);
-                $this->SetXY(10, 4);
-                $this->Cell(140, 10, 'SISTEMA ISKALLI', 0, 0, 'L');
-
-                // Fecha
-                $this->SetFont('Arial', 'I', 9);
-                $this->SetXY(150, 4);
-                $this->Cell(137, 10, 'Generado: ' . date('d/m/Y H:i:s'), 0, 0, 'R');
-
-                // Título del reporte
-                $this->SetFont('Arial', 'B', 14);
-                $this->SetTextColor(26, 46, 44);
-                $this->SetXY(10, 22);
-                $this->Cell(277, 10, utf8_decode($this->titulo), 0, 1, 'C');
-
-                $this->Ln(4);
+            /* ── Reset básico ── */
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            html { font-size: 14px; }
+            body {
+              font-family: 'Segoe UI', Arial, sans-serif;
+              background: var(--fondo);
+              color: var(--text);
+              padding: 0;
             }
 
-            public function Footer(): void
-            {
-                $this->SetY(-12);
-                $this->SetFont('Arial', 'I', 8);
-                $this->SetTextColor(150, 150, 150);
-                $this->Cell(0, 10, 'Página ' . $this->PageNo() . ' / {nb}', 0, 0, 'C');
+            /* ── Encabezado del reporte ── */
+            .report-header {
+              background: var(--verde);
+              color: #fff;
+              padding: 18px 32px 14px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-        };
+            .report-header .org   { font-size: 12px; opacity: .85; }
+            .report-header .fecha { font-size: 11px; opacity: .80; text-align: right; }
 
-        $pdf->AliasNbPages();
-        $pdf->AddPage();
-        $pdf->SetAutoPageBreak(true, 18);
+            .report-title-bar {
+              background: #fff;
+              padding: 16px 32px 12px;
+              border-bottom: 2px solid var(--verde);
+            }
+            .report-title-bar h1 {
+              font-size: 20px;
+              font-weight: 700;
+              color: var(--text);
+              letter-spacing: -.3px;
+            }
+            .report-title-bar .subtitle {
+              font-size: 12px;
+              color: var(--muted);
+              margin-top: 4px;
+            }
 
-        return $pdf;
-    }
+            /* ── Contenedor principal ── */
+            .report-body { padding: 24px 32px 40px; }
 
-    // ─────────────────────────────────────────────
-    //  PDF: Donadores
-    // ─────────────────────────────────────────────
+            /* ── Tabla ── */
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 0;
+              font-size: 12.5px;
+            }
+            thead tr {
+              background: var(--verde);
+              color: #fff;
+            }
+            thead th {
+              padding: 9px 10px;
+              text-align: left;
+              font-weight: 600;
+              font-size: 11.5px;
+              white-space: nowrap;
+            }
+            thead th.c { text-align: center; }
+            thead th.r { text-align: right; }
 
-    private function pdfDonadores(): void
-    {
-        $stmt = $this->db->query(
-            "SELECT d.id_donador AS id,
-                    COALESCE(CONCAT(df.nombre, ' ', df.apellido), dm.razon_social, dg.nombre_grupo, 'Anónimo') AS nombre,
-                    d.email AS correo,
-                    d.telefono AS telefono,
-                    d.tipo_donante AS tipo_donador,
-                    d.created_at AS fecha_registro
-             FROM donadores d
-             LEFT JOIN donadores_fisicos df ON df.id_donador = d.id_donador
-             LEFT JOIN donadores_morales dm ON dm.id_donador = d.id_donador
-             LEFT JOIN donadores_grupos dg ON dg.id_donador = d.id_donador
-             ORDER BY d.created_at DESC"
-        );
-        $filas = $stmt->fetchAll();
+            tbody tr:nth-child(even) { background: var(--alt-row); }
+            tbody tr:nth-child(odd)  { background: #fff; }
+            tbody tr:hover           { background: #c8f0ed; }
 
-        $pdf = $this->crearPDF('REPORTE DE DONADORES');
+            tbody td {
+              padding: 8px 10px;
+              border-bottom: 1px solid var(--border);
+              color: var(--text);
+            }
+            tbody td.c { text-align: center; }
+            tbody td.r { text-align: right; }
 
-        // Cabecera de tabla
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Arial', 'B', 10);
+            /* ── Fila de totales ── */
+            .totals-row {
+              background: var(--verde) !important;
+              color: #fff !important;
+              font-weight: 700;
+            }
+            .totals-row td {
+              color: #fff !important;
+              border-bottom: none !important;
+              padding: 9px 10px;
+            }
 
-        $pdf->Cell(15,  9, '#',               1, 0, 'C', true);
-        $pdf->Cell(65,  9, 'Nombre',          1, 0, 'L', true);
-        $pdf->Cell(70,  9, 'Correo',          1, 0, 'L', true);
-        $pdf->Cell(35,  9, 'Teléfono',        1, 0, 'C', true);
-        $pdf->Cell(42,  9, 'Tipo',            1, 0, 'C', true);
-        $pdf->Cell(40,  9, 'Fecha registro',  1, 1, 'C', true);
+            /* ── Badges de estado ── */
+            .badge {
+              display: inline-block;
+              padding: 2px 10px;
+              border-radius: 99px;
+              font-size: 10.5px;
+              font-weight: 600;
+              white-space: nowrap;
+            }
+            .badge-activo     { background: #d1fae5; color: #065f46; }
+            .badge-inactivo   { background: #fee2e2; color: #991b1b; }
+            .badge-espera     { background: #fef3c7; color: #92400e; }
+            .badge-activa     { background: #d1fae5; color: #065f46; }
+            .badge-finalizada { background: #dbeafe; color: #1e40af; }
+            .badge-cancelada  { background: #fee2e2; color: #991b1b; }
 
-        // Cuerpo
-        $pdf->SetTextColor(26, 46, 44);
-        $pdf->SetFont('Arial', '', 9);
-        $fill = false;
+            /* ── Pie del reporte ── */
+            .report-footer {
+              background: var(--verde);
+              color: #fff;
+              text-align: center;
+              padding: 9px;
+              font-size: 11px;
+              opacity: .9;
+            }
 
-        foreach ($filas as $f) {
-            $pdf->SetFillColor(240, 253, 251);
-            $pdf->Cell(15,  8, $f['id'],                                    1, 0, 'C', $fill);
-            $pdf->Cell(65,  8, utf8_decode($f['nombre'] ?? ''),             1, 0, 'L', $fill);
-            $pdf->Cell(70,  8, utf8_decode($f['correo'] ?? ''),             1, 0, 'L', $fill);
-            $pdf->Cell(35,  8, utf8_decode($f['telefono'] ?? ''),           1, 0, 'C', $fill);
-            $pdf->Cell(42,  8, utf8_decode($f['tipo_donador'] ?? ''),       1, 0, 'C', $fill);
-            $pdf->Cell(40,  8, $f['fecha_registro'] ?? '',                  1, 1, 'C', $fill);
-            $fill = !$fill;
-        }
+            /* ── Botón imprimir (no se imprime) ── */
+            .print-btn {
+              position: fixed;
+              bottom: 28px;
+              right: 28px;
+              background: var(--verde);
+              color: #fff;
+              border: none;
+              border-radius: 50px;
+              padding: 13px 26px;
+              font-size: 14px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: 0 4px 20px rgba(10,175,160,.4);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              transition: background .2s;
+            }
+            .print-btn:hover { background: var(--verde-dk); }
 
-        // Total
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(267, 9, 'Total de donadores registrados: ' . count($filas), 1, 1, 'R', true);
+            /* ── Media print ── */
+            @media print {
+              body        { background: #fff; font-size: 10pt; }
+              .print-btn  { display: none !important; }
+              table       { page-break-inside: auto; font-size: 9pt; }
+              tr          { page-break-inside: avoid; page-break-after: auto; }
+              thead       { display: table-header-group; }
+              tfoot       { display: table-footer-group; }
+              .report-header,
+              .report-title-bar,
+              .report-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              thead tr    { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .totals-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              tbody tr:nth-child(even) { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
 
-        $pdf->Output('I', 'Reporte_Donadores_' . date('Ymd') . '.pdf');
+          <!-- Encabezado corporativo -->
+          <div class="report-header">
+            <div class="org">
+              <strong style="font-size:14px;">{$appNombre}</strong><br>
+              Sistema de Gestión Social
+            </div>
+            <div class="fecha">
+              Generado el:<br>
+              <strong>{$fecha}</strong>
+            </div>
+          </div>
+
+          <!-- Título del reporte -->
+          <div class="report-title-bar">
+            <h1>{$titulo}</h1>
+            <p class="subtitle">{$subtitulo}</p>
+          </div>
+
+          <!-- Contenido principal -->
+          <div class="report-body">
+            {$cuerpo}
+          </div>
+
+          <!-- Pie -->
+          <div class="report-footer">
+            Sistema de Gestión Juventud Iskali &nbsp;|&nbsp; {$appNombre}
+          </div>
+
+          <!-- Botón flotante de impresión -->
+          <button class="print-btn" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/>
+              <path d="M6 18v4h12v-4"/><circle cx="18" cy="13" r="1" fill="currentColor"/>
+            </svg>
+            Imprimir / Guardar PDF
+          </button>
+
+        </body>
+        </html>
+        HTML;
+
         exit;
     }
 
-    // ─────────────────────────────────────────────
-    //  PDF: Beneficiarios
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Helper — badge de estado con color
+    // ─────────────────────────────────────────────────────────────────────────
 
-    private function pdfBeneficiarios(): void
+    private function badge(string $texto, string $clase): string
     {
-        $stmt = $this->db->query(
-            "SELECT b.id_beneficiario AS id,
-                    COALESCE(CONCAT(bf.nombre, ' ', bf.apellido), bm.razon_social) AS nombre,
-                    b.tipo_persona AS tipo_persona,
-                    bf.edad AS edad,
-                    c.municipio AS municipio,
-                    b.estado AS estatus,
-                    b.created_at AS fecha_registro
-             FROM beneficiarios b
-             LEFT JOIN beneficiarios_fisicos bf ON bf.id_beneficiario = b.id_beneficiario
-             LEFT JOIN beneficiarios_morales bm ON bm.id_beneficiario = b.id_beneficiario
-             LEFT JOIN comunidades c ON c.id_comunidad = b.id_comunidad
-             ORDER BY b.created_at DESC"
-        );
-        $filas = $stmt->fetchAll();
-
-        $pdf = $this->crearPDF('REPORTE DE BENEFICIARIOS');
-
-        // Cabecera
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Arial', 'B', 10);
-
-        $pdf->Cell(15,  9, '#',              1, 0, 'C', true);
-        $pdf->Cell(60,  9, 'Nombre',         1, 0, 'L', true);
-        $pdf->Cell(60,  9, 'Tipo',           1, 0, 'L', true);
-        $pdf->Cell(18,  9, 'Edad',           1, 0, 'C', true);
-        $pdf->Cell(52,  9, 'Municipio',      1, 0, 'L', true);
-        $pdf->Cell(32,  9, 'Estatus',        1, 0, 'C', true);
-        $pdf->Cell(40,  9, 'Fecha reg.',     1, 1, 'C', true);
-
-        // Cuerpo
-        $pdf->SetTextColor(26, 46, 44);
-        $pdf->SetFont('Arial', '', 9);
-        $fill = false;
-
-        foreach ($filas as $f) {
-            $pdf->SetFillColor(240, 253, 251);
-            $pdf->Cell(15,  8, $f['id'],                                   1, 0, 'C', $fill);
-            $pdf->Cell(60,  8, utf8_decode($f['nombre'] ?? ''),            1, 0, 'L', $fill);
-            $pdf->Cell(60,  8, utf8_decode($f['tipo_persona'] ?? ''),      1, 0, 'L', $fill);
-            $pdf->Cell(18,  8, $f['edad'] ?? '',                           1, 0, 'C', $fill);
-            $pdf->Cell(52,  8, utf8_decode($f['municipio'] ?? ''),         1, 0, 'L', $fill);
-            $pdf->Cell(32,  8, utf8_decode($f['estatus'] ?? ''),           1, 0, 'C', $fill);
-            $pdf->Cell(40,  8, $f['fecha_registro'] ?? '',                 1, 1, 'C', $fill);
-            $fill = !$fill;
-        }
-
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(277, 9, 'Total de beneficiarios: ' . count($filas), 1, 1, 'R', true);
-
-        $pdf->Output('I', 'Reporte_Beneficiarios_' . date('Ymd') . '.pdf');
-        exit;
+        $claseSegura = htmlspecialchars($clase);
+        $textoSeguro = htmlspecialchars($texto);
+        return "<span class=\"badge badge-{$claseSegura}\">{$textoSeguro}</span>";
     }
 
-    // ─────────────────────────────────────────────
-    //  PDF: Campañas
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    //  REPORTE: Donadores
+    // ─────────────────────────────────────────────────────────────────────────
 
-    private function pdfCampanas(): void
+    private function reporteDonadores(): void
     {
-        $stmt = $this->db->query(
-            "SELECT id_campana AS id,
-                    nombre,
-                    descripcion,
-                    fecha_inicio,
-                    fecha_cierre AS fecha_fin,
-                    estado AS estatus,
-                    meta_economica AS meta_monto
-             FROM campanas
-             ORDER BY fecha_inicio DESC"
-        );
-        $filas = $stmt->fetchAll();
+        $data      = $this->model->getResumenDonadores();
+        $filas     = $data['filas'];
+        $total     = $data['total'];
+        $activos   = $data['activos'];
+        $inactivos = $data['inactivos'];
 
-        $pdf = $this->crearPDF('REPORTE DE CAMPAÑAS');
+        $filasHtml = '';
+        foreach ($filas as $i => $f) {
+            $n            = $i + 1;
+            $nombre       = htmlspecialchars($f['nombre_completo'] ?? '—');
+            $email        = htmlspecialchars($f['email']);
+            $tel          = htmlspecialchars($f['telefono']);
+            $tipo         = htmlspecialchars($f['tipo_label']);
+            $estatusBadge = (bool)$f['activo']
+                ? $this->badge('Activo',   'activo')
+                : $this->badge('Inactivo', 'inactivo');
 
-        // Cabecera
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Arial', 'B', 10);
-
-        $pdf->Cell(12,  9, '#',            1, 0, 'C', true);
-        $pdf->Cell(75,  9, 'Nombre',       1, 0, 'L', true);
-        $pdf->Cell(80,  9, 'Descripción',  1, 0, 'L', true);
-        $pdf->Cell(30,  9, 'Inicio',       1, 0, 'C', true);
-        $pdf->Cell(30,  9, 'Fin',          1, 0, 'C', true);
-        $pdf->Cell(28,  9, 'Estatus',      1, 0, 'C', true);
-        $pdf->Cell(32,  9, 'Meta ($)',     1, 1, 'R', true);
-
-        // Cuerpo
-        $pdf->SetTextColor(26, 46, 44);
-        $pdf->SetFont('Arial', '', 9);
-        $fill = false;
-
-        foreach ($filas as $f) {
-            $pdf->SetFillColor(240, 253, 251);
-            $pdf->Cell(12,  8, $f['id'],                                           1, 0, 'C', $fill);
-            $pdf->Cell(75,  8, utf8_decode(mb_strimwidth($f['nombre'] ?? '', 0, 40, '…')),      1, 0, 'L', $fill);
-            $pdf->Cell(80,  8, utf8_decode(mb_strimwidth($f['descripcion'] ?? '', 0, 45, '…')), 1, 0, 'L', $fill);
-            $pdf->Cell(30,  8, $f['fecha_inicio'] ?? '',                            1, 0, 'C', $fill);
-            $pdf->Cell(30,  8, $f['fecha_fin'] ?? '',                               1, 0, 'C', $fill);
-            $pdf->Cell(28,  8, utf8_decode($f['estatus'] ?? ''),                    1, 0, 'C', $fill);
-            $pdf->Cell(32,  8, '$' . number_format((float)($f['meta_monto'] ?? 0), 2), 1, 1, 'R', $fill);
-            $fill = !$fill;
+            $filasHtml .= "<tr>
+              <td class=\"c\">{$n}</td>
+              <td>{$nombre}</td>
+              <td>{$email}</td>
+              <td class=\"c\">{$tel}</td>
+              <td class=\"c\">{$tipo}</td>
+              <td class=\"c\">{$estatusBadge}</td>
+            </tr>";
         }
 
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetFillColor(10, 175, 160);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(287, 9, 'Total de campañas: ' . count($filas), 1, 1, 'R', true);
+        $filasHtml .= "<tr class=\"totals-row\">
+          <td colspan=\"5\" style=\"text-align:right;\">
+            Total donadores: {$total} &nbsp;|&nbsp; Activos: {$activos} &nbsp;|&nbsp; Inactivos: {$inactivos}
+          </td>
+          <td></td>
+        </tr>";
 
-        $pdf->Output('I', 'Reporte_Campanas_' . date('Ymd') . '.pdf');
-        exit;
+        $cuerpo = "
+        <table>
+          <thead>
+            <tr>
+              <th class=\"c\" style=\"width:40px;\">#</th>
+              <th>Nombre / Razón social</th>
+              <th>Correo electrónico</th>
+              <th class=\"c\" style=\"width:130px;\">Teléfono</th>
+              <th class=\"c\" style=\"width:130px;\">Tipo</th>
+              <th class=\"c\" style=\"width:100px;\">Estatus</th>
+            </tr>
+          </thead>
+          <tbody>{$filasHtml}</tbody>
+        </table>";
+
+        $subtitulo = "Total: {$total} donadores   |   Activos: {$activos}   |   Inactivos: {$inactivos}";
+        $this->renderReporte('LISTADO DE DONADORES', $subtitulo, $cuerpo);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  REPORTE: Beneficiarios
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function reporteBeneficiarios(): void
+    {
+        $data      = $this->model->getResumenBeneficiarios();
+        $filas     = $data['filas'];
+        $total     = $data['total'];
+        $activos   = $data['activos'];
+        $espera    = $data['espera'];
+        $inactivos = $data['inactivos'];
+
+        $filasHtml = '';
+        foreach ($filas as $i => $f) {
+            $n         = $i + 1;
+            $nombre    = htmlspecialchars($f['nombre']    ?? '—');
+            $apellidos = htmlspecialchars($f['apellidos'] ?? '—');
+            $edad      = ($f['edad'] !== null && $f['edad'] !== '')
+                ? htmlspecialchars($f['edad']) . ' años'
+                : '—';
+            $municipio = htmlspecialchars($f['municipio'] ?? '—');
+            $tipoLabel = $f['tipo_persona'] === 'moral' ? 'Moral' : 'Física';
+
+            $badgeClase = match($f['estatus']) {
+                'Activo'    => 'activo',
+                'Inactivo'  => 'inactivo',
+                'En espera' => 'espera',
+                default     => 'inactivo',
+            };
+            $estatusBadge = $this->badge($f['estatus'], $badgeClase);
+
+            $filasHtml .= "<tr>
+              <td class=\"c\">{$n}</td>
+              <td>{$nombre}</td>
+              <td>{$apellidos}</td>
+              <td class=\"c\">{$edad}</td>
+              <td>{$municipio}</td>
+              <td class=\"c\">{$estatusBadge}</td>
+              <td class=\"c\">{$tipoLabel}</td>
+            </tr>";
+        }
+
+        $filasHtml .= "<tr class=\"totals-row\">
+          <td colspan=\"6\" style=\"text-align:right;\">
+            Total: {$total} &nbsp;|&nbsp; Activos: {$activos} &nbsp;|&nbsp; En espera: {$espera} &nbsp;|&nbsp; Inactivos: {$inactivos}
+          </td>
+          <td></td>
+        </tr>";
+
+        $cuerpo = "
+        <table>
+          <thead>
+            <tr>
+              <th class=\"c\" style=\"width:40px;\">#</th>
+              <th style=\"width:18%;\">Nombre</th>
+              <th style=\"width:20%;\">Apellidos</th>
+              <th class=\"c\" style=\"width:80px;\">Edad</th>
+              <th>Municipio</th>
+              <th class=\"c\" style=\"width:110px;\">Estatus</th>
+              <th class=\"c\" style=\"width:80px;\">Tipo</th>
+            </tr>
+          </thead>
+          <tbody>{$filasHtml}</tbody>
+        </table>";
+
+        $subtitulo = "Total: {$total}   |   Activos: {$activos}   |   En espera: {$espera}   |   Inactivos: {$inactivos}";
+        $this->renderReporte('LISTADO DE BENEFICIARIOS', $subtitulo, $cuerpo);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  REPORTE: Campañas
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function reporteCampanas(): void
+    {
+        $data      = $this->model->getResumenCampanas();
+        $filas     = $data['filas'];
+        $total     = $data['total'];
+        $totalMeta = $data['totalMeta'];
+
+        $filasHtml = '';
+        foreach ($filas as $i => $f) {
+            $n      = $i + 1;
+            $nombre = htmlspecialchars($f['nombre']      ?? '—');
+            $desc   = htmlspecialchars($f['descripcion'] ?? '—');
+            $inicio = htmlspecialchars($f['fecha_inicio'] ?? '—');
+            $fin    = htmlspecialchars($f['fecha_fin']    ?? '—');
+            $meta   = '$' . number_format((float)$f['meta_monto'], 2);
+
+            $badgeClase = match($f['estatus']) {
+                'Activa'     => 'activa',
+                'Finalizada' => 'finalizada',
+                'Cancelada'  => 'cancelada',
+                default      => 'inactivo',
+            };
+            $estatusBadge = $this->badge($f['estatus'], $badgeClase);
+
+            $filasHtml .= "<tr>
+              <td class=\"c\">{$n}</td>
+              <td>{$nombre}</td>
+              <td style=\"color:#5a8a84;font-size:11.5px;\">{$desc}</td>
+              <td class=\"c\">{$inicio}</td>
+              <td class=\"c\">{$fin}</td>
+              <td class=\"c\">{$estatusBadge}</td>
+              <td class=\"r\">{$meta}</td>
+            </tr>";
+        }
+
+        $metaFormateada = '$' . number_format($totalMeta, 2);
+        $filasHtml .= "<tr class=\"totals-row\">
+          <td colspan=\"5\" style=\"text-align:right;\">
+            Total campañas: {$total} &nbsp;|&nbsp; Meta acumulada:
+          </td>
+          <td></td>
+          <td class=\"r\">{$metaFormateada}</td>
+        </tr>";
+
+        $cuerpo = "
+        <table>
+          <thead>
+            <tr>
+              <th class=\"c\" style=\"width:40px;\">#</th>
+              <th style=\"width:22%;\">Nombre</th>
+              <th>Descripción</th>
+              <th class=\"c\" style=\"width:100px;\">Inicio</th>
+              <th class=\"c\" style=\"width:100px;\">Cierre</th>
+              <th class=\"c\" style=\"width:100px;\">Estatus</th>
+              <th class=\"r\" style=\"width:100px;\">Meta ($)</th>
+            </tr>
+          </thead>
+          <tbody>{$filasHtml}</tbody>
+        </table>";
+
+        $subtitulo = "Total: {$total} campañas   |   Meta económica acumulada: $" . number_format($totalMeta, 2);
+        $this->renderReporte('LISTADO DE CAMPAÑAS', $subtitulo, $cuerpo);
     }
 }

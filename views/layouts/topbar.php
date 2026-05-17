@@ -18,7 +18,7 @@ if (!empty($_SESSION['id_usuario']) && isset($conexion)) {
 
   <div class="topbar-actions">
     <a href="<?= BASE_URL ?>/index.php?pagina=dashboard" class="topbar-button btn-icon">
-      <img src="<?= BASE_URL ?>/public/iconos/icons8-casa-50.png" alt="Dashboard" class="icon-img">
+     <img src="<?= BASE_URL ?>/public/iconos/Dashboard.png" alt="Dashboard" style="width:16px;height:16px;">
       Inicio
     </a>
 
@@ -31,10 +31,7 @@ if (!empty($_SESSION['id_usuario']) && isset($conexion)) {
 
     <!-- Ícono de notificación con badge -->
     <div style="position:relative;cursor:pointer;" title="Notificaciones" onclick="toggleNotifDropdown()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5">
-        <path d="M8 1C5 1 3 3.5 3 6V10L1 12H15L13 10V6C13 3.5 11 1 8 1Z"/>
-        <path d="M6 12C6 13.1 6.9 14 8 14S10 13.1 10 12"/>
-      </svg>
+      <img src="<?= BASE_URL ?>/public/iconos/notificacion.png" alt="Notificaciones" style="width:16px;height:16px;cursor:pointer;">
       <?php if ($notif_count > 0): ?>
         <span style="position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:var(--danger);border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">
           <?= min($notif_count, 9) ?>
@@ -59,7 +56,7 @@ if (!empty($_SESSION['id_usuario']) && isset($conexion)) {
     </div>
 
     <a href="<?= BASE_URL ?>/index.php?pagina=logout" class="topbar-button btn-icon">
-      <img src="<?= BASE_URL ?>/public/iconos/icons8-cancelar-50.png" alt="Cerrar sesión" class="icon-img">
+     <img src="<?= BASE_URL ?>/public/iconos/cerrar_sesion_puerta.png" alt="Cerrar sesión" style="width:16px;height:16px;">
       Salir
     </a>
 

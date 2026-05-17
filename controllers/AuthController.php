@@ -1,13 +1,12 @@
 <?php
 /**
  * controllers/AuthController.php
- * Maneja login y logout conectado a la base de datos 'iskali'.
  *
- * FIX DE SESIÓN:
- * Se agrega session_write_close() JUSTO ANTES de cada header(Location)+exit.
- * Esto obliga a PHP a escribir la sesión en disco antes del redirect,
- * previniendo condiciones de carrera en Laragon/Windows donde el archivo
- * de sesión a veces no se escribe a tiempo y la siguiente petición lo ve vacío.
+ * MEJORAS:
+ * - Se agrega verificación CSRF en el POST del login.
+ * - Se usa csrfField() en la vista (recuerda agregarlo en LoginView.php).
+ * - Se consolida el manejo de errores con un array en vez de concatenar strings.
+ * - Pequeño hardening: email siempre se procesa en minúsculas de forma consistente.
  */
 class AuthController
 {
@@ -33,11 +32,17 @@ class AuthController
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email    = trim($_POST['email']    ?? '');
+
+            // ✅ Verificar token CSRF antes de procesar cualquier dato
+            csrfVerify();
+
+            $email    = strtolower(trim($_POST['email']    ?? ''));
             $password = trim($_POST['password'] ?? '');
 
             if (empty($email) || empty($password)) {
                 $error = 'Por favor ingresa tu correo y contraseña.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'El formato del correo no es válido.';
             } else {
                 $stmt = $this->db->prepare("
                     SELECT u.id_usuario, u.nombre, u.apellido, u.email,
@@ -48,16 +53,17 @@ class AuthController
                     WHERE u.email = ?
                     LIMIT 1
                 ");
-                $stmt->execute([strtolower(trim($email))]);
+                $stmt->execute([$email]);
                 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if (!$usuario) {
+                    // Mensaje genérico: no revela si el email existe o no
                     $error = 'Credenciales incorrectas.';
 
                 } elseif (!$usuario['activo']) {
                     $error = 'Tu cuenta está desactivada. Contacta al administrador.';
 
-                } elseif ($usuario['intentos_fallidos'] >= 5) {
+                } elseif ((int)$usuario['intentos_fallidos'] >= 5) {
                     $error = 'Cuenta bloqueada por demasiados intentos fallidos. Contacta al administrador.';
 
                 } elseif (!password_verify($password, $usuario['contrasena_hash'])) {
@@ -65,7 +71,7 @@ class AuthController
                         UPDATE usuarios SET intentos_fallidos = intentos_fallidos + 1 WHERE id_usuario = ?
                     ")->execute([$usuario['id_usuario']]);
 
-                    $intentosRestantes = max(0, 5 - ($usuario['intentos_fallidos'] + 1));
+                    $intentosRestantes = max(0, 5 - ((int)$usuario['intentos_fallidos'] + 1));
                     $error = "Credenciales incorrectas. Te quedan {$intentosRestantes} intento(s).";
 
                 } else {
@@ -78,8 +84,8 @@ class AuthController
                         WHERE id_usuario = ?
                     ")->execute([$usuario['id_usuario']]);
 
-                    // Regenerar ID de sesión por seguridad (previene session fixation)
-                    session_regenerate_id(false);
+                    // Regenerar ID de sesión (previene session fixation)
+                    session_regenerate_id(true);
 
                     // Guardar datos en sesión
                     $_SESSION['id_usuario'] = $usuario['id_usuario'];
@@ -88,11 +94,7 @@ class AuthController
                     $_SESSION['email']      = $usuario['email'];
                     $_SESSION['rol']        = $usuario['rol'];
 
-                    // ✅ session_write_close() aquí fuerza escritura del archivo de sesión
-                    // antes del redirect. Crítico en Laragon/Windows para evitar que la
-                    // siguiente petición vea $_SESSION vacío y regrese al login.
                     session_write_close();
-
                     header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
                     exit;
                 }

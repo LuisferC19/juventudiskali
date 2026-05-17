@@ -27,12 +27,12 @@ class PlanningModel
                 fecha_fin,
                 zona,
                 estado,
-                id_usuario_responsable,
-                created_at,
+                id_responsable,
+                creado_en AS created_at,
                 u.nombre,
                 u.apellido
             FROM actividades a
-            LEFT JOIN usuarios u ON a.id_usuario_responsable = u.id_usuario
+            LEFT JOIN usuarios u ON a.id_responsable = u.id_usuario
             WHERE 1=1
         ";
 
@@ -75,12 +75,12 @@ class PlanningModel
                 fecha_fin,
                 zona,
                 estado,
-                id_usuario_responsable,
+                id_responsable,
                 DAY(fecha_inicio) as dia,
                 u.nombre,
                 u.apellido
             FROM actividades a
-            LEFT JOIN usuarios u ON a.id_usuario_responsable = u.id_usuario
+            LEFT JOIN usuarios u ON a.id_responsable = u.id_usuario
             WHERE MONTH(fecha_inicio) = :mes AND YEAR(fecha_inicio) = :anio
             ORDER BY DAY(fecha_inicio) ASC
         ";
@@ -107,7 +107,7 @@ class PlanningModel
     {
         $query = "
             INSERT INTO actividades 
-            (titulo, descripcion, fecha_inicio, fecha_fin, zona, estado, id_usuario_responsable, created_at)
+            (titulo, descripcion, fecha_inicio, fecha_fin, zona, estado, id_responsable, creado_en)
             VALUES (:titulo, :descripcion, :fecha_inicio, :fecha_fin, :zona, :estado, :id_usuario_responsable, :created_at)
         ";
 
@@ -179,7 +179,7 @@ class PlanningModel
                 u.apellido,
                 u.email
             FROM actividades a
-            LEFT JOIN usuarios u ON a.id_usuario_responsable = u.id_usuario
+            LEFT JOIN usuarios u ON a.id_responsable = u.id_usuario
             WHERE a.id_actividad = :id
         ";
 

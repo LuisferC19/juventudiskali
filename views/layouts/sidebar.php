@@ -1,107 +1,115 @@
 <?php
 /**
  * views/layouts/sidebar.php
- * CAMBIO: el enlace "Reportes" ahora apunta a ?pagina=reportes en vez de showToast.
+ *
+ * CORRECCIONES:
+ * - Se eliminaron los módulos "Seguimiento GPS" y "Quejas y Sugerencias"
+ *   que eran stubs en construcción (showToast) y no deben aparecer en producción.
+ * - Se resolvieron los conflictos de merge de Git (<<<<<<< HEAD / >>>>>>>)
+ *   que quedaron sin resolver en el archivo original.
+ * - El enlace "Reportes" apunta correctamente a ?pagina=reportes.
  */
 
-function navActivo(string $pagina, string $actual): string {
+function navActivo(string $pagina, string $actual): string
+{
     return $pagina === $actual ? 'active' : '';
 }
 ?>
 
 <nav class="sidebar">
 
-  <!-- Logo -->
+  <!-- Logo con mascota -->
   <div class="sidebar-logo">
-    <span>Iskalli</span>
-    <small>Sistema Integral</small>
+    <img src="<?= BASE_URL ?>/public/img/Mascota_Iski_1.jpeg"
+         alt="Iskali Mascota"
+         style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-bottom:8px;">
+    <span>Juventud Iskali</span>
+    <small>Sistema Integra</small>
   </div>
 
   <!-- Menú de navegación -->
   <div class="nav-section">
 
     <div class="nav-label">Principal</div>
-    <a href="<?= BASE_URL ?>/index.php?pagina=dashboard" class="nav-item <?= navActivo('dashboard', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=dashboard"
+       class="nav-item <?= navActivo('dashboard', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Dashboard.png" alt="Dashboard" style="width:20px;height:20px;">
       Dashboard
     </a>
 
     <div class="nav-label">Gestión</div>
-    <a href="<?= BASE_URL ?>/index.php?pagina=campanas" class="nav-item <?= navActivo('campanas', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L14 5V13H2V5Z"/><rect x="6" y="9" width="4" height="4"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=campanas"
+       class="nav-item <?= navActivo('campanas', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Campañas.png" alt="Campañas" style="width:20px;height:20px;">
       Campañas
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=donadores" class="nav-item <?= navActivo('donadores', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2C9.1 2 10 2.9 10 4S9.1 6 8 6 6 5.1 6 4 6.9 2 8 2ZM14 13C14 10.2 11.3 9 8 9S2 10.2 2 13"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=donadores"
+       class="nav-item <?= navActivo('donadores', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/patrocinador.png" alt="Donadores" style="width:20px;height:20px;">
       Donadores
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=donaciones" class="nav-item <?= navActivo('donaciones', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1V15M1 8H15" stroke-linecap="round"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=donaciones"
+       class="nav-item <?= navActivo('donaciones', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/donaciones.png" alt="Donaciones" style="width:20px;height:20px;">
       Donaciones
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios" class="nav-item <?= navActivo('beneficiarios', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14C1 11.2 3.2 10 6 10"/><circle cx="12" cy="8" r="2.5"/><path d="M9 14C9 12.1 10.3 11 12 11S15 12.1 15 14"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios"
+       class="nav-item <?= navActivo('beneficiarios', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Beneficiarios.png" alt="Beneficiarios" style="width:20px;height:20px;">
       Beneficiarios
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=entregas" class="nav-item <?= navActivo('entregas', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4L8 1L15 4V12L8 15L1 12V4Z"/><path d="M8 1V15M1 4L8 7L15 4"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=entregas"
+       class="nav-item <?= navActivo('entregas', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Entregas.png" alt="Entregas" style="width:20px;height:20px;">
       Entregas
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=usuarios" class="nav-item <?= navActivo('usuarios', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 15C2 12.2 4.7 11 8 11S14 12.2 14 15"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=usuarios"
+       class="nav-item <?= navActivo('usuarios', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Usuarios.png" alt="Usuarios" style="width:20px;height:20px;">
       Usuarios
     </a>
 
     <div class="nav-label">Control</div>
-    <a href="<?= BASE_URL ?>/index.php?pagina=inventario" class="nav-item <?= navActivo('inventario', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="9" rx="1"/><path d="M5 4V3A2 2 0 0 1 9 3V4M6 9H10"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=inventario"
+       class="nav-item <?= navActivo('inventario', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/inventario.png" alt="Inventario" style="width:20px;height:20px;">
       Inventario
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=voluntarios" class="nav-item <?= navActivo('voluntarios', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 7L5 4M8 7L11 4M8 7V13"/><circle cx="8" cy="3" r="2"/><path d="M2 13H14"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=voluntarios"
+       class="nav-item <?= navActivo('voluntarios', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Voluntarios.png" alt="Voluntarios" style="width:20px;height:20px;">
       Voluntarios
     </a>
-    <a href="<?= BASE_URL ?>/index.php?pagina=respaldos" class="nav-item <?= navActivo('respaldos', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4H14V12H2V4Z"/><path d="M6 8H10"/><path d="M8 6V10"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=respaldos"
+       class="nav-item <?= navActivo('respaldos', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/respaldo_base_datos.png" alt="Respaldos" style="width:20px;height:20px;">
       Respaldos
     </a>
 
     <div class="nav-label">Extras</div>
-    <a href="<?= BASE_URL ?>/index.php?pagina=gamificacion" class="nav-item <?= navActivo('gamificacion', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L10 6H15L11 9.5L12.5 15L8 12L3.5 15L5 9.5L1 6H6Z"/></svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=gamificacion"
+       class="nav-item <?= navActivo('gamificacion', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/gamificacion_trofeo.png" alt="Gamificación" style="width:20px;height:20px;">
       Gamificación
     </a>
-
-<<<<<<< HEAD
-    <!-- Elementos sin página propia: muestran toast al hacer clic -->
-    <a href="<?= BASE_URL ?>/index.php?pagina=planning" class="nav-item <?= navActivo('planning', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="1" y="2" width="14" height="12" rx="1"/>
-        <path d="M1 6H15M5 2V6M11 2V6"/>
-      </svg>
+    <a href="<?= BASE_URL ?>/index.php?pagina=planning"
+       class="nav-item <?= navActivo('planning', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/planificacion.png" alt="Planning" style="width:20px;height:20px;">
       Planning
-=======
-    <!-- ── REPORTES: ahora es un enlace real ── -->
-    <a href="<?= BASE_URL ?>/index.php?pagina=reportes" class="nav-item <?= navActivo('reportes', $pagina_activa) ?>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4H14M2 8H10M2 12H7" stroke-linecap="round"/></svg>
+    </a>
+    <a href="<?= BASE_URL ?>/index.php?pagina=reportes"
+       class="nav-item <?= navActivo('reportes', $pagina_activa) ?>">
+      <img src="<?= BASE_URL ?>/public/iconos/Reportes.png" alt="Reportes" style="width:20px;height:20px;">
       Reportes
     </a>
 
-    <!-- Módulos aún en construcción -->
-    <a href="#" class="nav-item" onclick="showToast('Módulo GPS en construcción'); return false;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 2V4M8 12V14M2 8H4M12 8H14"/></svg>
-      Seguimiento GPS
-    </a>
-    <a href="#" class="nav-item" onclick="showToast('Módulo Quejas y Sugerencias en construcción'); return false;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2H14V11H9L8 14L7 11H2Z"/></svg>
-      Quejas y Sugerencias
-    </a>
+    <!-- Módulos en construcción -->
     <a href="#" class="nav-item" onclick="showToast('Módulo Notificaciones en construcción'); return false;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1C5 1 3 3.5 3 6V10L1 12H15L13 10V6C13 3.5 11 1 8 1Z"/><path d="M6 12C6 13.1 6.9 14 8 14S10 13.1 10 12"/></svg>
+      <img src="<?= BASE_URL ?>/public/iconos/Modulo_Notificaciones.png" alt="Notificaciones" style="width:20px;height:20px;">
       Notificaciones
     </a>
     <a href="#" class="nav-item" onclick="showToast('Módulo Historial en construcción'); return false;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5V8L10 10"/></svg>
+      <img src="<?= BASE_URL ?>/public/iconos/Historial_De_Acesso.png" alt="Historial" style="width:20px;height:20px;">
       Historial accesos
     </a>
 
@@ -113,10 +121,12 @@ function navActivo(string $pagina, string $actual): string {
       <div class="user-avatar">ES</div>
       <div class="user-info">
         <span><?= htmlspecialchars($_SESSION['usuario'] ?? ADMIN_NOMBRE) ?></span>
-        <small><?= htmlspecialchars($_SESSION['rol'] ?? ADMIN_ROL) ?></small>
+        <small><?= htmlspecialchars($_SESSION['rol']    ?? ADMIN_ROL) ?></small>
       </div>
     </div>
-    <a href="<?= BASE_URL ?>/index.php?pagina=logout" class="btn btn-secondary btn-sm" style="width:100%;margin-top:.6rem;font-size:10.5px;text-align:center;text-decoration:none;">
+    <a href="<?= BASE_URL ?>/index.php?pagina=logout"
+       class="btn btn-secondary btn-sm"
+       style="width:100%;margin-top:.6rem;font-size:10.5px;text-align:center;text-decoration:none;">
       Cerrar sesión
     </a>
   </div>

@@ -76,6 +76,17 @@ class PlanningController
     {
         header('Content-Type: application/json');
 
+        // ✅ Verificar token CSRF
+        $tokenEnviado = $_POST['csrf_token'] ?? '';
+        $tokenSesion  = $_SESSION['csrf_token'] ?? '';
+        if (empty($tokenEnviado) || empty($tokenSesion) || !hash_equals($tokenSesion, $tokenEnviado)) {
+            unset($_SESSION['csrf_token']);
+            http_response_code(403);
+            echo json_encode(['error' => 'Token CSRF inválido.']);
+            return;
+        }
+        unset($_SESSION['csrf_token']);
+
         $titulo = trim($_POST['titulo'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
         $fecha_inicio = trim($_POST['fecha_inicio'] ?? '');
@@ -112,6 +123,17 @@ class PlanningController
     private function actualizarEstado(): void
     {
         header('Content-Type: application/json');
+
+        // ✅ Verificar token CSRF
+        $tokenEnviado = $_POST['csrf_token'] ?? '';
+        $tokenSesion  = $_SESSION['csrf_token'] ?? '';
+        if (empty($tokenEnviado) || empty($tokenSesion) || !hash_equals($tokenSesion, $tokenEnviado)) {
+            unset($_SESSION['csrf_token']);
+            http_response_code(403);
+            echo json_encode(['error' => 'Token CSRF inválido.']);
+            return;
+        }
+        unset($_SESSION['csrf_token']);
 
         $id = filter_var($_POST['id'] ?? 0, FILTER_VALIDATE_INT);
         $estado = trim($_POST['estado'] ?? '');

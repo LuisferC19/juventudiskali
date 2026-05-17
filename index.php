@@ -1,7 +1,15 @@
 <?php
 /**
  * index.php — Router principal del sistema Iskali
- * CAMBIOS: se añade accion=importar en respaldos, y el case 'reportes'.
+ *
+ * CORRECCIONES:
+ * 1. case 'voluntarios': ahora usa VoluntariosController (existía el archivo
+ *    pero la ruta seguía apuntando al DashboardController).
+ * 2. case 'planning': el bloque match() fue reemplazado por if/elseif claros.
+ *    El match anterior enviaba 'crear' y 'actualizar_estado' a $ctrl->index(),
+ *    ignorando que esas acciones son POST-AJAX manejadas dentro del propio
+ *    PlanningController::index(). Ahora el router simplemente llama a index()
+ *    siempre y deja que el controlador resuelva la acción correcta.
  */
 
 require_once 'config/app.php';
@@ -27,7 +35,7 @@ switch ($pagina) {
 
     case 'dashboard':
         require_once 'controllers/DashboardController.php';
-        (new DashboardController())->index();
+        (new DashboardController($conexion))->index();
         break;
 
     case 'campanas':
@@ -47,7 +55,7 @@ switch ($pagina) {
 
     case 'donaciones':
         require_once 'controllers/DashboardController.php';
-        (new DashboardController())->donaciones();
+        (new DashboardController($conexion))->donaciones();
         break;
 
     case 'beneficiarios':
@@ -57,22 +65,25 @@ switch ($pagina) {
 
     case 'entregas':
         require_once 'controllers/DashboardController.php';
-        (new DashboardController())->entregas();
+        (new DashboardController($conexion))->entregas();
         break;
 
     case 'inventario':
         require_once 'controllers/DashboardController.php';
-        (new DashboardController())->inventario();
+        (new DashboardController($conexion))->inventario();
         break;
 
+    // ── VOLUNTARIOS ───────────────────────────────────────────────────────
+    // CORRECCIÓN: antes llamaba a DashboardController->voluntarios().
+    // Ahora usa el controlador dedicado que ya existía en el proyecto.
     case 'voluntarios':
-        require_once 'controllers/DashboardController.php';
-        (new DashboardController())->voluntarios();
+        require_once 'controllers/VoluntariosController.php';
+        (new VoluntariosController($conexion))->index();
         break;
 
     case 'gamificacion':
         require_once 'controllers/DashboardController.php';
-        (new DashboardController())->gamificacion();
+        (new DashboardController($conexion))->gamificacion();
         break;
 
     // ── RESPALDOS ─────────────────────────────────────────────────────────
@@ -83,14 +94,14 @@ switch ($pagina) {
 
         if ($accion === 'generar') {
             $controller->generar();
-        } elseif ($accion === 'importar') {       // ← NUEVO
+        } elseif ($accion === 'importar') {
             $controller->importar();
         } else {
             $controller->index();
         }
         break;
 
-    // ── REPORTES (NUEVO) ──────────────────────────────────────────────────
+    // ── REPORTES ──────────────────────────────────────────────────────────
     case 'reportes':
         require_once 'controllers/ReportesController.php';
         $controller = new ReportesController($conexion);
@@ -109,16 +120,21 @@ switch ($pagina) {
         $ctrl->index();
         break;
 
+    // ── PLANNING ──────────────────────────────────────────────────────────
+    // CORRECCIÓN: el match() anterior era confuso y enviaba 'crear' y
+    // 'actualizar_estado' a index() de todas formas. Se simplificó:
+    // el router siempre llama a index() y PlanningController resuelve
+    // internamente cada acción (GET/POST, AJAX vs vista).
     case 'planning':
         require_once 'controllers/PlanningController.php';
-        $ctrl = new PlanningController($conexion);
+        $ctrl   = new PlanningController($conexion);
         $accion = $_GET['accion'] ?? 'index';
-        match($accion) {
-            'crear'             => $ctrl->index(),
-            'actualizar_estado' => $ctrl->index(),
-            'actividades_mes'   => $ctrl->getActividadesMes(),
-            default             => $ctrl->index(),
-        };
+
+        if ($accion === 'actividades_mes') {
+            $ctrl->getActividadesMes();   // único método público AJAX del controlador
+        } else {
+            $ctrl->index();               // index() maneja crear, actualizar_estado y la vista
+        }
         break;
 
     case 'home':
