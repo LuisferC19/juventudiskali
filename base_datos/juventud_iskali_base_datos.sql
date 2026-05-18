@@ -3,7 +3,7 @@ CREATE DATABASE iskali CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE iskali;
 
 -- ============================================================
---  tablas base
+--  TABLAS BASE
 -- ============================================================
 
 CREATE TABLE roles (
@@ -71,7 +71,6 @@ CREATE TABLE tipos_bien (
     PRIMARY KEY (id_tipo_bien),
     UNIQUE KEY uq_bien_nombre (nombre)
 );
-
 
 CREATE TABLE usuarios (
     id_usuario             INT          NOT NULL AUTO_INCREMENT,
@@ -146,8 +145,8 @@ CREATE TABLE donadores_morales (
 );
 
 CREATE TABLE donadores_grupos (
-    id_donador   INT          NOT NULL,
-    nombre_grupo VARCHAR(150) NOT NULL,
+    id_donador    INT          NOT NULL,
+    nombre_grupo  VARCHAR(150) NOT NULL,
     representante VARCHAR(200),
     PRIMARY KEY (id_donador)
 );
@@ -159,7 +158,6 @@ CREATE TABLE donador_insignias (
     id_usuario_asignador INT      NOT NULL,
     PRIMARY KEY (id_donador, id_insignia)
 );
-
 
 CREATE TABLE campanas (
     id_campana         INT           NOT NULL AUTO_INCREMENT,
@@ -190,7 +188,6 @@ CREATE TABLE avances_campana (
     CONSTRAINT chk_porcentaje CHECK (porcentaje_avance BETWEEN 0.00 AND 100.00)
 );
 
-
 CREATE TABLE reconocimientos (
     id_reconocimiento INT      NOT NULL AUTO_INCREMENT,
     id_donador        INT      NULL,
@@ -212,11 +209,10 @@ CREATE TABLE reconocimientos (
     id_usuario_emisor INT      NOT NULL,
     otorgado_por      INT      NULL,
     PRIMARY KEY (id_reconocimiento),
-   CONSTRAINT chk_reconoc_receptor CHECK (
+    CONSTRAINT chk_reconoc_receptor CHECK (
         id_donador IS NOT NULL OR id_usuario IS NOT NULL
     )
 );
-
 
 CREATE TABLE donaciones (
     id_donacion            INT      NOT NULL AUTO_INCREMENT,
@@ -323,7 +319,6 @@ CREATE TABLE beneficiario_tipos_apoyo (
     PRIMARY KEY (id_beneficiario, id_tipo_apoyo)
 );
 
-
 CREATE TABLE entregas (
     id_entrega             INT           NOT NULL AUTO_INCREMENT,
     id_donacion            INT           NOT NULL,
@@ -396,7 +391,6 @@ CREATE TABLE asistencia_voluntarios (
     UNIQUE KEY uq_vol_actividad (id_voluntario, id_actividad)
 );
 
-
 CREATE TABLE notificaciones (
     id_notificacion    INT          NOT NULL AUTO_INCREMENT,
     id_usuario         INT          NULL,
@@ -423,16 +417,20 @@ CREATE TABLE notificaciones (
     PRIMARY KEY (id_notificacion)
 );
 
+-- ============================================================
+--  TABLA respaldos 
+-- ============================================================
+
 CREATE TABLE respaldos (
-    id                 INT          NOT NULL AUTO_INCREMENT,
-    tipo_operacion     ENUM('EXPORTACION','IMPORTACION') NOT NULL,
-    nombre_archivo     VARCHAR(255) NOT NULL,
-    formato            VARCHAR(20)  NOT NULL DEFAULT 'ZIP',
-    nombre_bd          VARCHAR(100) NOT NULL,
-    tamanio_bytes      BIGINT       NOT NULL DEFAULT 0,
-    usuario_id         INT          NULL,
-    observaciones      TEXT,
-    fechayhora         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    tipo_operacion ENUM('EXPORTACION','IMPORTACION') NOT NULL,
+    nombre_archivo VARCHAR(255)    NOT NULL,
+    formato        ENUM('SQL','ZIP','JSON')          DEFAULT 'ZIP',
+    nombre_bd      VARCHAR(150)    NOT NULL,
+    tamanio_bytes  BIGINT UNSIGNED                  DEFAULT NULL,
+    usuario_id     BIGINT UNSIGNED                  DEFAULT NULL,
+    fechayhora     TIMESTAMP                        DEFAULT CURRENT_TIMESTAMP,
+    observaciones  TEXT,
     PRIMARY KEY (id)
 );
 
@@ -451,10 +449,6 @@ ALTER TABLE historial_accesos
 ALTER TABLE recuperacion_contrasena
     ADD CONSTRAINT fk_recuperacion_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario);
-
-ALTER TABLE respaldos
-    ADD CONSTRAINT fk_respaldos_usuario
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario);
 
 ALTER TABLE donadores
     ADD CONSTRAINT fk_donadores_nivel
@@ -490,7 +484,6 @@ ALTER TABLE avances_campana
     ADD CONSTRAINT fk_avances_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario);
 
-
 ALTER TABLE reconocimientos
     ADD CONSTRAINT fk_reconoc_donador
         FOREIGN KEY (id_donador) REFERENCES donadores(id_donador),
@@ -502,7 +495,6 @@ ALTER TABLE reconocimientos
         FOREIGN KEY (id_usuario_emisor) REFERENCES usuarios(id_usuario),
     ADD CONSTRAINT fk_reconoc_otorgador
         FOREIGN KEY (otorgado_por) REFERENCES usuarios(id_usuario);
-
 
 ALTER TABLE donaciones
     ADD CONSTRAINT fk_don_donador
@@ -521,7 +513,6 @@ ALTER TABLE donaciones_especie
 ALTER TABLE donaciones_economicas
     ADD CONSTRAINT fk_eco_donacion
         FOREIGN KEY (id_donacion) REFERENCES donaciones(id_donacion) ON DELETE CASCADE;
-
 
 ALTER TABLE inventario
     ADD CONSTRAINT fk_inv_tipo
@@ -563,7 +554,6 @@ ALTER TABLE entregas
     ADD CONSTRAINT fk_entrega_responsable
         FOREIGN KEY (id_usuario_responsable) REFERENCES usuarios(id_usuario);
 
-
 ALTER TABLE voluntarios
     ADD CONSTRAINT fk_voluntarios_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario);
@@ -576,10 +566,10 @@ ALTER TABLE asignaciones_voluntario
     ADD CONSTRAINT fk_asig_usuario
         FOREIGN KEY (id_usuario_asignador) REFERENCES usuarios(id_usuario);
 
-
 ALTER TABLE actividades
     ADD CONSTRAINT fk_act_responsable
         FOREIGN KEY (id_responsable) REFERENCES usuarios(id_usuario);
+
 ALTER TABLE asistencia_voluntarios
     ADD CONSTRAINT fk_asist_voluntario
         FOREIGN KEY (id_voluntario) REFERENCES voluntarios(id_voluntario),
@@ -622,7 +612,7 @@ CREATE INDEX idx_asistencia_voluntario  ON asistencia_voluntarios(id_voluntario)
 --  VISTAS
 -- ============================================================
 
-REATE OR REPLACE VIEW v_donadores AS
+CREATE OR REPLACE VIEW v_donadores AS
 SELECT
     d.id_donador,
     d.tipo_donante,
@@ -642,7 +632,7 @@ SELECT
     d.puntos_acumulados,
     ng.nombre AS nivel,
     d.activo,
-    d.createCd_at
+    d.created_at
 FROM donadores d
 LEFT JOIN donadores_fisicos     df ON d.id_donador = df.id_donador
 LEFT JOIN donadores_morales     dm ON d.id_donador = dm.id_donador
@@ -738,8 +728,8 @@ SELECT
     a.creado_en,
     COUNT(av.id_asistencia)            AS total_asistentes
 FROM actividades a
-LEFT JOIN usuarios             u  ON a.id_responsable = u.id_usuario
-LEFT JOIN asistencia_voluntarios av ON a.id_actividad = av.id_actividad AND av.presente = 1
+LEFT JOIN usuarios               u  ON a.id_responsable = u.id_usuario
+LEFT JOIN asistencia_voluntarios av ON a.id_actividad   = av.id_actividad AND av.presente = 1
 GROUP BY a.id_actividad, a.titulo, a.descripcion, a.fecha_inicio,
          a.fecha_fin, a.zona, a.estado, u.nombre, u.apellido, a.creado_en;
 
@@ -759,17 +749,16 @@ SELECT
     CONCAT(emisor.nombre, ' ', emisor.apellido) AS emitido_por,
     c.nombre AS campana
 FROM reconocimientos r
-LEFT JOIN usuarios          u     ON r.id_usuario        = u.id_usuario
+LEFT JOIN usuarios          u      ON r.id_usuario        = u.id_usuario
 LEFT JOIN usuarios          emisor ON r.id_usuario_emisor = emisor.id_usuario
-LEFT JOIN donadores         d     ON r.id_donador         = d.id_donador
-LEFT JOIN donadores_fisicos df    ON d.id_donador         = df.id_donador
-LEFT JOIN donadores_morales dm    ON d.id_donador         = dm.id_donador
-LEFT JOIN campanas          c     ON r.id_campana         = c.id_campana;
+LEFT JOIN donadores         d      ON r.id_donador        = d.id_donador
+LEFT JOIN donadores_fisicos df     ON d.id_donador        = df.id_donador
+LEFT JOIN donadores_morales dm     ON d.id_donador        = dm.id_donador
+LEFT JOIN campanas          c      ON r.id_campana        = c.id_campana;
 
 -- ============================================================
 --  DATOS INICIALES
 -- ============================================================
-
 
 INSERT INTO roles (nombre, descripcion, activo) VALUES
 ('Administrador', 'Acceso total al sistema',                      TRUE),
@@ -792,7 +781,7 @@ INSERT INTO comunidades (nombre, municipio, estado) VALUES
 ('San Andrés Cholula',    'San Andrés Cholula',    'Puebla'),
 ('San Martín Texmelucan', 'San Martín Texmelucan', 'Puebla'),
 ('Teziutlán',             'Teziutlán',             'Puebla'),
-('Huauchinango',          'Huauchinango',          'Puebla'),
+('Huauchinango',          'Huauchinango',           'Puebla'),
 ('Tehuacán',              'Tehuacán',              'Puebla'),
 ('Atlixco',               'Atlixco',               'Puebla'),
 ('Rancho Nuevo',          'Puebla',                'Puebla'),
@@ -800,7 +789,7 @@ INSERT INTO comunidades (nombre, municipio, estado) VALUES
 ('Izúcar de Matamoros',   'Izúcar de Matamoros',   'Puebla'),
 ('Chignahuapan',          'Chignahuapan',          'Puebla'),
 ('Zacatlán',              'Zacatlán',              'Puebla'),
-('Tepexi de Rodríguez',   'Tepexi de Rodríguez',  'Puebla'),
+('Tepexi de Rodríguez',   'Tepexi de Rodríguez',   'Puebla'),
 ('Puebla Centro',         'Puebla',                'Puebla'),
 ('Huejotzingo',           'Huejotzingo',           'Puebla'),
 ('Puebla',                'Puebla',                'Puebla');
@@ -818,16 +807,16 @@ INSERT INTO tipos_apoyo (nombre, descripcion, activo) VALUES
 ('Servicio médico',  'Consultas y atención médica gratuita',  TRUE);
 
 INSERT INTO niveles_gamificacion (nombre, puntos_minimos, puntos_maximos, descripcion, imagen_url) VALUES
-('Semilla',      0,       99,      'Primer nivel del donador',             'img/semilla.png'),
-('Brote',        100,     249,     'Empieza a contribuir regularmente',    'img/brote.png'),
-('Árbol Joven',  250,     499,     'Donador comprometido',                 'img/arbol_joven.png'),
-('Árbol Maduro', 500,     999,     'Alto nivel de participación',          'img/arbol_maduro.png'),
-('Selva',        1000,    1999,    'Donador de gran impacto',              'img/selva.png'),
-('Guardián',     2000,    3499,    'Protector activo de la comunidad',     'img/guardian.png'),
-('Héroe Local',  3500,    5999,    'Reconocido por la comunidad',          'img/heroe.png'),
-('Leyenda',      6000,    9999,    'Impacto transformador',                'img/leyenda.png'),
-('Embajador',    10000,   19999,   'Representante oficial de iskalli',     'img/embajador.png'),
-('Fundador',     20000,   49999,   'Pilar del proyecto desde sus inicios', 'img/fundador.png');
+('Semilla',      0,      99,    'Primer nivel del donador',             'img/semilla.png'),
+('Brote',        100,    249,   'Empieza a contribuir regularmente',    'img/brote.png'),
+('Árbol Joven',  250,    499,   'Donador comprometido',                 'img/arbol_joven.png'),
+('Árbol Maduro', 500,    999,   'Alto nivel de participación',          'img/arbol_maduro.png'),
+('Selva',        1000,   1999,  'Donador de gran impacto',              'img/selva.png'),
+('Guardián',     2000,   3499,  'Protector activo de la comunidad',     'img/guardian.png'),
+('Héroe Local',  3500,   5999,  'Reconocido por la comunidad',          'img/heroe.png'),
+('Leyenda',      6000,   9999,  'Impacto transformador',                'img/leyenda.png'),
+('Embajador',    10000,  19999, 'Representante oficial de iskalli',     'img/embajador.png'),
+('Fundador',     20000,  49999, 'Pilar del proyecto desde sus inicios', 'img/fundador.png');
 
 INSERT INTO insignias (nombre, descripcion, puntos_otorgados, imagen_url, activa) VALUES
 ('Primera Donación',    'Otorgada al realizar la primera donación',    50,  'img/i_primera.png',    TRUE),
@@ -848,13 +837,13 @@ INSERT INTO tipos_bien (nombre, unidad_medida, descripcion, activo) VALUES
 ('Donativo en Especie Misc.', 'pieza',    'Artículos varios en buen estado',           TRUE);
 
 INSERT INTO tipos_referencia_notif (nombre, descripcion) VALUES
-('campana',      'Referencia a la tabla campanas'),
-('donacion',     'Referencia a la tabla donaciones'),
-('entrega',      'Referencia a la tabla entregas'),
-('insignia',     'Referencia a la tabla insignias'),
-('actividad',    'Referencia a la tabla actividades'),
-('asistencia',   'Referencia a la tabla asistencia_voluntarios'),
-('reconocimiento','Referencia a la tabla reconocimientos');
+('campana',        'Referencia a la tabla campanas'),
+('donacion',       'Referencia a la tabla donaciones'),
+('entrega',        'Referencia a la tabla entregas'),
+('insignia',       'Referencia a la tabla insignias'),
+('actividad',      'Referencia a la tabla actividades'),
+('asistencia',     'Referencia a la tabla asistencia_voluntarios'),
+('reconocimiento', 'Referencia a la tabla reconocimientos');
 
 INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
 (1,  'Laura',    'Hernández Ruiz',    'laura.admin@iskalli.mx',    '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-01-10 08:00:00'),
@@ -871,24 +860,26 @@ INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, 
 (11, 'Ernesto',  'Medina Villanueva', 'ernesto.log@iskalli.mx',    '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-04-05 11:00:00'),
 (12, 'Isabel',   'Peña Durán',        'isabel.ana@iskalli.mx',     '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-04-10 08:30:00'),
 (5,  'Martín',   'Aguilar Ochoa',     'martin.don@iskalli.mx',     '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-04-15 09:30:00'),
-(15, 'Claudia',  'Reyes Montes',      'claudia.ext@iskalli.mx',    '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-05-01 10:00:00');
+(15, 'Claudia',  'Reyes Montes',      'claudia.ext@iskalli.mx',    '$2y$10$q9xr8MiezW4JpL9K6KtbXu18BUHs043/EQRpxsFfaU0zFEGgf8vem', TRUE, 0, '2024-05-01 10:00:00'),
+(1,  'Admin',    'Sistema',           'admin@iskali.mx',           '$2b$10$cGx0.CrtxGlnL3IwfZCPYuadZomiu4KRXDNAVHpbiFfIW5yIdbtm6', TRUE, 0, '2026-05-12 14:17:55'),
+(1,  'Admin2',   'Sistema',           'admin2@iskali.mx',          '$2b$10$cGx0.CrtxGlnL3IwfZCPYuadZomiu4KRXDNAVHpbiFfIW5yIdbtm6', TRUE, 0, '2026-05-13 15:10:13');
 
 INSERT INTO donadores (id_nivel, tipo_donante, puntos_acumulados, email, telefono, activo, created_at) VALUES
-(1, 'persona',       30,   'juan.garcia@email.com',     '2221100001', TRUE, '2024-01-20 10:00:00'),
-(2, 'persona',       180,  'maria.lopez@email.com',     '2221100002', TRUE, '2024-01-25 11:00:00'),
-(4, 'organizacion',  620,  'contacto@empresaalfa.mx',   '2221100003', TRUE, '2024-02-01 09:00:00'),
-(2, 'persona',       310,  'pedro.mtz@email.com',       '2221100004', TRUE, '2024-02-10 10:00:00'),
-(3, 'persona',       480,  'elena.rojas@email.com',     '2221100005', TRUE, '2024-02-15 12:00:00'),
-(5, 'organizacion',  1200, 'info@fundacionluz.mx',      '2221100006', TRUE, '2024-02-20 08:00:00'),
-(1, 'persona',       50,   'luis.torres@email.com',     '2221100007', TRUE, '2024-03-01 09:00:00'),
-(3, 'persona',       420,  'carmen.vaz@email.com',      '2221100008', TRUE, '2024-03-05 10:00:00'),
-(2, 'persona',       260,  'arturo.diaz@email.com',     '2221100009', TRUE, '2024-03-10 11:00:00'),
-(4, 'grupo',         750,  'admin@coopunida.mx',        '2221100010', TRUE, '2024-03-15 08:00:00'),
-(1, 'persona',       70,   'fernanda.rios@email.com',   '2221100011', TRUE, '2024-04-01 10:00:00'),
-(2, 'persona',       190,  'oscar.campos@email.com',    '2221100012', TRUE, '2024-04-05 11:00:00'),
-(3, 'grupo',         450,  'hola@gruposemilla.mx',      '2221100013', TRUE, '2024-04-10 09:00:00'),
-(2, 'persona',       230,  'natalia.serrano@email.com', '2221100014', TRUE, '2024-04-15 10:30:00'),
-(1, 'persona',       40,   'rodrigo.blanco@email.com',  '2221100015', TRUE, '2024-05-01 09:00:00');
+(1, 'persona',      30,   'juan.garcia@email.com',     '2221100001', TRUE, '2024-01-20 10:00:00'),
+(2, 'persona',      180,  'maria.lopez@email.com',     '2221100002', TRUE, '2024-01-25 11:00:00'),
+(4, 'organizacion', 620,  'contacto@empresaalfa.mx',   '2221100003', TRUE, '2024-02-01 09:00:00'),
+(2, 'persona',      310,  'pedro.mtz@email.com',       '2221100004', TRUE, '2024-02-10 10:00:00'),
+(3, 'persona',      480,  'elena.rojas@email.com',     '2221100005', TRUE, '2024-02-15 12:00:00'),
+(5, 'organizacion', 1200, 'info@fundacionluz.mx',      '2221100006', TRUE, '2024-02-20 08:00:00'),
+(1, 'persona',      50,   'luis.torres@email.com',     '2221100007', TRUE, '2024-03-01 09:00:00'),
+(3, 'persona',      420,  'carmen.vaz@email.com',      '2221100008', TRUE, '2024-03-05 10:00:00'),
+(2, 'persona',      260,  'arturo.diaz@email.com',     '2221100009', TRUE, '2024-03-10 11:00:00'),
+(4, 'grupo',        750,  'admin@coopunida.mx',        '2221100010', TRUE, '2024-03-15 08:00:00'),
+(1, 'persona',      70,   'fernanda.rios@email.com',   '2221100011', TRUE, '2024-04-01 10:00:00'),
+(2, 'persona',      190,  'oscar.campos@email.com',    '2221100012', TRUE, '2024-04-05 11:00:00'),
+(3, 'grupo',        450,  'hola@gruposemilla.mx',      '2221100013', TRUE, '2024-04-10 09:00:00'),
+(2, 'persona',      230,  'natalia.serrano@email.com', '2221100014', TRUE, '2024-04-15 10:30:00'),
+(1, 'persona',      40,   'rodrigo.blanco@email.com',  '2221100015', TRUE, '2024-05-01 09:00:00');
 
 INSERT INTO donadores_fisicos (id_donador, nombre, apellido) VALUES
 (1,  'Juan',     'García Pérez'),
@@ -904,8 +895,8 @@ INSERT INTO donadores_fisicos (id_donador, nombre, apellido) VALUES
 (15, 'Rodrigo',  'Blanco Fuentes');
 
 INSERT INTO donadores_morales (id_donador, razon_social, giro_comercial) VALUES
-(3,  'Empresa Alfa',  'Empresa privada'),
-(6,  'Fundación Luz', 'Fundación sin fines de lucro');
+(3, 'Empresa Alfa',  'Empresa privada'),
+(6, 'Fundación Luz', 'Fundación sin fines de lucro');
 
 INSERT INTO donadores_grupos (id_donador, nombre_grupo, representante) VALUES
 (10, 'Cooperativa Unida', 'Lucía Peralta'),
@@ -924,8 +915,8 @@ INSERT INTO beneficiarios (tipo_persona, id_comunidad, direccion, telefono, esta
 ('fisica', 10, 'Col. San Francisco 3',    '2223001010', 'activo',    '7 integrantes zona fría',        5, '2024-09-10 11:00:00'),
 ('moral',  11, 'Av. Reforma s/n',         '2223001011', 'activo',    '250 alumnos escasos recursos',   2, '2024-02-10 08:00:00'),
 ('fisica', 12, 'Calle Olivos 9',          '2223001012', 'en_espera', 'En proceso de verificación',     8, '2024-03-10 09:00:00'),
-('moral',  13, 'Calle 5 de Mayo 88',      '2223001013', 'activo',    'Albergan 80 animales',           5, '2025-03-01 10:00:00'),
-('fisica', 14, 'Barrio Tepeyac 14',       '2223001014', 'activo',    'Requiere consultas periódicas',  5, '2024-05-15 11:00:00'),
+('moral',  13, 'Calle 5 de Mayo 88',      '2223001013', 'inactivo',  'Albergan 80 animales',           5, '2025-03-01 10:00:00'),
+('fisica', 14, 'Barrio Tepeyac 14',       '2223001014', 'inactivo',  'Requiere consultas periódicas',  5, '2024-05-15 11:00:00'),
 ('moral',  15, 'Col. La Paz, Puebla',     '2223001015', 'activo',    '45 niños en casa hogar',         2, '2024-10-15 09:00:00');
 
 INSERT INTO beneficiarios_fisicos (id_beneficiario, nombre, apellido, edad) VALUES
@@ -957,5 +948,11 @@ INSERT INTO actividades (titulo, descripcion, fecha_inicio, fecha_fin, zona, est
 ('Distribución de despensas — San Martín', 'Reparto mensual de despensas básicas en colonias vulnerables', '2026-06-05 09:00:00', '2026-06-05 14:00:00', 'san_martin', 'planeada', 2),
 ('Jornada médica gratuita — Tlaxcala',     'Consultas médicas y odontológicas gratuitas',                  '2026-06-12 08:00:00', '2026-06-12 17:00:00', 'tlaxcala',   'planeada', 5),
 ('Entrega de material escolar — Ambas',    'Distribución de útiles para inicio de ciclo escolar',          '2026-07-15 09:00:00', '2026-07-15 13:00:00', 'ambas',      'planeada', 2),
-('Campaña de ropa de abrigo — Tlaxcala',  'Recolección y entrega de cobijas y ropa de invierno',          '2026-08-01 08:00:00', '2026-08-01 16:00:00', 'tlaxcala',   'planeada', 8);
+('Campaña de ropa de abrigo — Tlaxcala',   'Recolección y entrega de cobijas y ropa de invierno',          '2026-08-01 08:00:00', '2026-08-01 16:00:00', 'tlaxcala',   'planeada', 8);
 
+INSERT INTO respaldos (tipo_operacion, nombre_archivo, formato, nombre_bd, tamanio_bytes, usuario_id, fechayhora, observaciones) VALUES
+('IMPORTACION', 'respaldo_20260513_161250.zip', 'ZIP', 'iskali', 12181, 16, '2026-05-13 21:13:28', 'Restauración manual desde el panel de administración.'),
+('EXPORTACION', 'respaldo_20260516_000238.zip', 'ZIP', 'iskali', 12320, 16, '2026-05-16 05:02:39', 'Respaldo manual generado desde el panel.'),
+('IMPORTACION', 'respaldo_20260516_215139.zip', 'ZIP', 'iskali', 12380, 16, '2026-05-17 02:51:59', 'Restauración manual desde el panel de administración.'),
+('EXPORTACION', 'respaldo_20260516_215229.zip', 'ZIP', 'iskali', 12406, 16, '2026-05-17 02:52:30', 'Respaldo manual generado desde el panel.'),
+('EXPORTACION', 'respaldo_20260517_132059.zip', 'ZIP', 'iskali', 12430, 16, '2026-05-17 18:21:04', 'Respaldo manual generado desde el panel.');
