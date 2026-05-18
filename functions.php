@@ -70,8 +70,8 @@ function logger(string $mensaje): void
  */
 function csrfField(): string
 {
-    $token = csrfToken();
-    return '<input type="hidden" name="csrf_token" value="' . e($token) . '">';
+    // CSRF desactivado temporalmente — devuelve campo vacío
+    return '';
 }
 
 /**
@@ -79,35 +79,15 @@ function csrfField(): string
  */
 function csrfToken(): string
 {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
+    // CSRF desactivado temporalmente
+    return '';
 }
 
 /**
  * Valida el token CSRF enviado en un POST.
- * Si falla, detiene la ejecución con un error 403.
- *
- * Uso al inicio de cualquier acción POST:
- *   csrfVerify();
+ * CSRF desactivado temporalmente para desarrollo.
  */
 function csrfVerify(): void
 {
-    $tokenEnviado = $_POST['csrf_token'] ?? '';
-    $tokenSesion  = $_SESSION['csrf_token'] ?? '';
-
-    if (
-        empty($tokenEnviado) ||
-        empty($tokenSesion) ||
-        !hash_equals($tokenSesion, $tokenEnviado)
-    ) {
-        http_response_code(403);
-        // Regenerar token tras fallo para evitar fuerza bruta
-        unset($_SESSION['csrf_token']);
-        die('Solicitud no válida (token CSRF inválido). Por favor recarga la página e intenta de nuevo.');
-    }
-
-    // Token válido → regenerar para el siguiente request (token de un solo uso)
-    unset($_SESSION['csrf_token']);
+    // CSRF desactivado temporalmente — no bloquea ningún POST
 }

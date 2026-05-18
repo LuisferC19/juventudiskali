@@ -40,7 +40,7 @@ function navActivo(string $pagina, string $actual): string
     <div class="nav-label">Gestión</div>
     <a href="<?= BASE_URL ?>/index.php?pagina=campanas"
        class="nav-item <?= navActivo('campanas', $pagina_activa) ?>">
-      <img src="<?= BASE_URL ?>/public/iconos/Campañas.png" alt="Campañas" style="width:20px;height:20px;">
+      <img src="<?= BASE_URL ?>/public/iconos/Campanas.png" alt="Campañas" style="width:20px;height:20px;">
       Campañas
     </a>
     <a href="<?= BASE_URL ?>/index.php?pagina=donadores"

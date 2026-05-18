@@ -25,8 +25,10 @@ class UsuariosController
         $this->verificarRol(['Administrador']);
 
         $accion = trim($_GET['accion'] ?? '');
-        $id     = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
         $metodo = $_SERVER['REQUEST_METHOD'];
+        // El id puede venir en GET (editar, desbloquear) o en POST oculto (borrar)
+        $idRaw  = $_GET['id'] ?? $_POST['id'] ?? null;
+        $id     = isset($idRaw) ? filter_var($idRaw, FILTER_VALIDATE_INT) : null;
 
         // ── POST: Crear nuevo usuario
         if ($accion === 'crear' && $metodo === 'POST') {

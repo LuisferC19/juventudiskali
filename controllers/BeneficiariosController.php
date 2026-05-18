@@ -227,8 +227,7 @@ class BeneficiariosController
         }
 
         if ($this->modelo->eliminar($id)) {
-            $nombre = e($beneficiario['nombre_completo']);
-            $this->redirigirConMensaje("Beneficiario <strong>{$nombre}</strong> eliminado correctamente.", 'success');
+            $this->redirigirConMensaje('Beneficiario eliminado correctamente.', 'success');
         }
 
         $this->redirigirConMensaje('Error al eliminar el beneficiario. Intenta nuevamente.', 'error');
