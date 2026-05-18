@@ -1,0 +1,6 @@
+# .htaccess — Carpeta Respaldos/
+# Bloquea cualquier acceso directo por URL a esta carpeta.
+# Los archivos solo pueden ser leídos por PHP desde el servidor (BackupController).
+
+Order Deny,Allow
+Deny from all

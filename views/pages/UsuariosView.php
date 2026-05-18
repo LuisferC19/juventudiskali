@@ -62,7 +62,10 @@
                       background:<?= $bg ?>;color:<?= $color ?>;
                       border-left:4px solid <?= $border ?>;">
             <?= $icon ?>
-            <?= $mensaje /* puede contener <strong> */ ?>
+            <?php
+              
+              echo $mensaje;
+            ?>
           </div>
         <?php endif; ?>
 
@@ -135,7 +138,7 @@
                       <?php if ((int)$u['intentos_fallidos'] >= 5): ?>
                         <br>
                         <span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:12px;font-size:11px;margin-top:3px;display:inline-block;">
-                          🔒 Bloqueado
+                         <img src="<?= BASE_URL ?>/public/iconos/bloqueo_de_cuenta.png" alt="Ser voluntario" style="width:18px;height:18px;"> Bloqueado
                         </span>
                       <?php endif; ?>
                     </td>
@@ -196,10 +199,6 @@
   </div><!-- /main -->
 </div>
 
-<!-- ============================================================
-     MODAL: Crear Nuevo Usuario
-     Formulario POST → ?pagina=usuarios&accion=crear
-     ============================================================ -->
 <div class="modal-overlay" id="modal-crear-usuario">
   <div class="modal" style="max-width:560px;width:95%;">
 
@@ -214,7 +213,10 @@
     <form method="POST"
           action="<?= BASE_URL ?>/index.php?pagina=usuarios&accion=crear"
           id="form-crear-usuario"
-          onsubmit="return validarFormCrear()">
+          data-validate="true">
+
+      <!-- CORRECCIÓN #5: Token CSRF (faltaba en el modal de crear) -->
+      <?= csrfField() ?>
 
       <div class="modal-body">
         <div class="form-grid">
@@ -222,47 +224,94 @@
           <!-- Nombre -->
           <div class="form-group">
             <label for="c_nombre">Nombre <span style="color:#f44336;">*</span></label>
-            <input type="text" id="c_nombre" name="nombre"
-                   placeholder="Ej: Juan" maxlength="100" required
-                   autocomplete="given-name">
+            <input type="text"
+                   id="c_nombre"
+                   name="nombre"
+                   placeholder="Ej: Juan"
+                   maxlength="100"
+                   required
+                   autocomplete="given-name"
+                   data-rules="required|alpha|min:2|max:100|no_special"
+                   data-msg_required="El nombre es obligatorio."
+                   data-msg_alpha="Solo letras y espacios. No uses números ni símbolos."
+                   data-msg_min="El nombre debe tener al menos 2 caracteres."
+                   data-msg_no_special="No se permiten caracteres especiales.">
+            <div class="field-error"></div>
           </div>
 
           <!-- Apellido -->
           <div class="form-group">
             <label for="c_apellido">Apellido <span style="color:#f44336;">*</span></label>
-            <input type="text" id="c_apellido" name="apellido"
-                   placeholder="Ej: García López" maxlength="100" required
-                   autocomplete="family-name">
+            <input type="text"
+                   id="c_apellido"
+                   name="apellido"
+                   placeholder="Ej: García López"
+                   maxlength="100"
+                   required
+                   autocomplete="family-name"
+                   data-rules="required|alpha|min:2|max:100|no_special"
+                   data-msg_required="El apellido es obligatorio."
+                   data-msg_alpha="Solo letras y espacios. No uses números ni símbolos."
+                   data-msg_min="El apellido debe tener al menos 2 caracteres."
+                   data-msg_no_special="No se permiten caracteres especiales.">
+            <div class="field-error"></div>
           </div>
 
           <!-- Email -->
           <div class="form-group full">
             <label for="c_email">Correo Electrónico <span style="color:#f44336;">*</span></label>
-            <input type="email" id="c_email" name="email"
-                   placeholder="correo@iskalli.mx" maxlength="150" required
-                   autocomplete="email">
+            <input type="email"
+                   id="c_email"
+                   name="email"
+                   placeholder="correo@iskalli.mx"
+                   maxlength="150"
+                   required
+                   autocomplete="email"
+                   data-rules="required|email|max:150"
+                   data-msg_required="El correo electrónico es obligatorio."
+                   data-msg_email="Ingresa un correo válido (ej: correo@dominio.com)."
+                   data-msg_max="El correo no puede superar 150 caracteres.">
+            <div class="field-error"></div>
           </div>
 
           <!-- Contraseña -->
           <div class="form-group">
             <label for="c_password">Contraseña <span style="color:#f44336;">*</span></label>
-            <input type="password" id="c_password" name="password"
-                   placeholder="Mínimo 6 caracteres" minlength="6" required
-                   autocomplete="new-password">
+            <input type="password"
+                   id="c_password"
+                   name="password"
+                   placeholder="Mínimo 6 caracteres"
+                   minlength="6"
+                   required
+                   autocomplete="new-password"
+                   data-rules="required|min:6"
+                   data-msg_required="La contraseña es obligatoria."
+                   data-msg_min="La contraseña debe tener al menos 6 caracteres.">
+            <div class="field-error"></div>
           </div>
 
           <!-- Confirmar contraseña -->
           <div class="form-group">
             <label for="c_confirmar">Confirmar Contraseña <span style="color:#f44336;">*</span></label>
-            <input type="password" id="c_confirmar" name="confirmar_password"
-                   placeholder="Repite la contraseña" minlength="6" required
-                   autocomplete="new-password">
+            <input type="password"
+                   id="c_confirmar"
+                   name="confirmar_password"
+                   placeholder="Repite la contraseña"
+                   minlength="6"
+                   required
+                   autocomplete="new-password"
+                   data-rules="required|match:c_password"
+                   data-msg_required="Confirma la contraseña."
+                   data-msg_match="Las contraseñas no coinciden.">
+            <div class="field-error"></div>
           </div>
 
           <!-- Rol -->
           <div class="form-group full">
             <label for="c_rol">Rol del Usuario <span style="color:#f44336;">*</span></label>
-            <select id="c_rol" name="id_rol" required>
+            <select id="c_rol" name="id_rol" required
+                    data-rules="required"
+                    data-msg_required="Debes seleccionar un rol.">
               <option value="">— Selecciona un rol —</option>
               <?php foreach ($roles as $rol): ?>
                 <option value="<?= e((string)$rol['id_rol']) ?>">
@@ -270,6 +319,7 @@
                 </option>
               <?php endforeach; ?>
             </select>
+            <div class="field-error"></div>
           </div>
 
           <!-- Activo -->
@@ -281,13 +331,6 @@
           </div>
 
         </div><!-- /form-grid -->
-
-        <!-- Mensaje de error del modal (validación JS) -->
-        <div id="modal-error-crear"
-             style="display:none;background:#fdecea;color:#c62828;padding:10px 14px;
-                    border-radius:6px;border-left:4px solid #f44336;margin-top:12px;font-size:13px;">
-        </div>
-
       </div><!-- /modal-body -->
 
       <div class="modal-footer">
@@ -295,7 +338,7 @@
           Cancelar
         </button>
         <button type="submit" class="btn btn-primary">
-         <img src="<?= BASE_URL ?>/public/iconos/aprobado_carpeta.png" alt="Guardar" style="width:16px;height:16px;">
+          <img src="<?= BASE_URL ?>/public/iconos/aprobado_carpeta.png" alt="Guardar" style="width:16px;height:16px;">
           Guardar Usuario
         </button>
       </div>
@@ -304,47 +347,16 @@
   </div><!-- /modal -->
 </div><!-- /modal-overlay -->
 
-<!-- ── Script de validación del modal ── -->
+<script src="<?= BASE_URL ?>/public/js/App.js"></script>
+<script src="<?= BASE_URL ?>/public/js/Validaciones.js"></script>
 <script>
-function validarFormCrear() {
-  var errorDiv = document.getElementById('modal-error-crear');
-  var pass     = document.getElementById('c_password').value;
-  var confirm  = document.getElementById('c_confirmar').value;
-
-  errorDiv.style.display = 'none';
-  errorDiv.textContent   = '';
-
-  if (pass.length < 6) {
-    errorDiv.style.display = 'block';
-    errorDiv.textContent   = 'La contraseña debe tener al menos 6 caracteres.';
-    document.getElementById('c_password').focus();
-    return false;
-  }
-
-  if (pass !== confirm) {
-    errorDiv.style.display = 'block';
-    errorDiv.textContent   = 'Las contraseñas no coinciden. Verifica e intenta de nuevo.';
-    document.getElementById('c_confirmar').focus();
-    return false;
-  }
-
-  return true;
-}
-
-// Limpiar el formulario de crear cuando se cierre el modal
 document.addEventListener('DOMContentLoaded', function () {
   var overlay = document.getElementById('modal-crear-usuario');
   if (overlay) {
     overlay.addEventListener('click', function (e) {
-      // clic en el overlay (fuera del modal) cierra
       if (e.target === overlay) closeModal('modal-crear-usuario');
     });
   }
-
-  // Auto-abrir modal si hubo error de validación (recarga con mensaje de error)
-  <?php if (!empty($mensaje) && ($tipo_mensaje ?? '') === 'error'): ?>
-  // openModal('modal-crear-usuario');
-  <?php endif; ?>
 });
 </script>
 

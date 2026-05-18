@@ -143,8 +143,17 @@ switch ($pagina) {
         (new InicioController())->index();
         break;
 
+        case 'registro':
+    require_once 'views/pages/RegistroView.php';
+    break;
+    
+    case 'recuperar_password':
+    require_once 'views/pages/RecuperarPasswordView.php';
+    break;
+
     default:
         require_once 'controllers/InicioController.php';
         (new InicioController())->index();
         break;
+        
 }

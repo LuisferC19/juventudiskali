@@ -1,20 +1,15 @@
 <?php
 /**
  * iski_chat.php — Backend del koala Iski (Gemini API)
- *
- * MEJORAS:
- * - Access-Control-Allow-Origin restringido al origen del propio sistema.
- * - Validación y límite de longitud del mensaje de entrada.
- * - Respuesta de error estructurada en JSON (no HTML).
- * - Tiempo límite de cURL para evitar que una llamada lenta bloquee el servidor.
- * - La API key nunca se expone en respuestas de error.
  */
+
+// ── Iniciar sesión ANTES de enviar headers ────────────────────────────────────
+require_once __DIR__ . '/config/app.php';   // define BASE_URL, inicia session
+// (app.php ya llama a session_start() si la sesión no está activa)
 
 header('Content-Type: application/json; charset=utf-8');
 
-// 🔒 Cambia '*' por tu dominio real en producción, p.ej.:
-//    header('Access-Control-Allow-Origin: https://tudominio.com');
-// En desarrollo con Laragon localhost está bien así:
+
 header('Access-Control-Allow-Origin: http://localhost');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -22,6 +17,13 @@ header('Access-Control-Allow-Headers: Content-Type');
 // Pre-flight OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
+    exit;
+}
+
+// Solo usuarios autenticados pueden usar el chat de Iski.
+if (empty($_SESSION['id_usuario'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'No autorizado. Inicia sesión para usar este servicio.']);
     exit;
 }
 
@@ -91,6 +93,7 @@ $curlErr  = curl_error($ch);
 curl_close($ch);
 
 if ($curlErr || $response === false) {
+    require_once __DIR__ . '/functions.php';
     logger('iski_chat cURL error: ' . $curlErr);
     http_response_code(502);
     echo json_encode(['respuesta' => '¡Ups! No pude conectarme ahora. Intenta de nuevo.']);
@@ -101,6 +104,7 @@ $result = json_decode($response, true);
 $texto  = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
 if ($texto === null) {
+    require_once __DIR__ . '/functions.php';
     logger('iski_chat respuesta inesperada de Gemini (HTTP ' . $httpCode . '): ' . substr($response, 0, 200));
     echo json_encode(['respuesta' => '¡Hola! Soy Iski 👋 ¿En qué te puedo ayudar?']);
     exit;

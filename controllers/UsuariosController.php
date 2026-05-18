@@ -1,20 +1,6 @@
 <?php
 /**
  * controllers/UsuariosController.php
- * Controlador CRUD completo para el módulo de Usuarios.
- *
- * Rutas manejadas (todas bajo ?pagina=usuarios):
- *   GET  ?pagina=usuarios                         → lista de usuarios
- *   GET  ?pagina=usuarios&accion=nuevo            → formulario para crear
- *   POST ?pagina=usuarios&accion=crear            → guarda nuevo usuario
- *   GET  ?pagina=usuarios&accion=editar&id=N      → formulario de edición
- *   POST ?pagina=usuarios&accion=editar&id=N      → guarda cambios
- *   POST ?pagina=usuarios&accion=borrar&id=N      → elimina usuario  ← CORREGIDO: requiere POST, no GET
- *   GET  ?pagina=usuarios&accion=desbloquear&id=N → resetea intentos fallidos
- *
- * CORRECCIÓN: El docblock anterior indicaba GET para "borrar", pero el código
- * siempre exigió POST (para proteger contra borrados accidentales via link).
- * Se corrigió el docblock para reflejar la implementación real.
  */
 require_once 'models/UsuarioModel.php';
 
@@ -107,6 +93,9 @@ class UsuariosController
 
     private function crear(): void
     {
+        // CORRECCIÓN #5: verificar CSRF antes de procesar cualquier dato POST
+        csrfVerify();
+
         $nombre             = trim((string)($_POST['nombre']             ?? ''));
         $apellido           = trim((string)($_POST['apellido']           ?? ''));
         $email              = trim((string)($_POST['email']              ?? ''));
@@ -119,11 +108,27 @@ class UsuariosController
             $id_rol = 5;
         }
 
+        // ── Validaciones de caracteres  ──
         if (empty($nombre) || empty($apellido)) {
             $this->redirigirConMensaje('El nombre y el apellido son requeridos.', 'error');
         }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/u', $nombre)) {
+            $this->redirigirConMensaje('El nombre solo puede contener letras y espacios.', 'error');
+        }
+        if (mb_strlen($nombre) < 2 || mb_strlen($nombre) > 100) {
+            $this->redirigirConMensaje('El nombre debe tener entre 2 y 100 caracteres.', 'error');
+        }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/u', $apellido)) {
+            $this->redirigirConMensaje('El apellido solo puede contener letras y espacios.', 'error');
+        }
+        if (mb_strlen($apellido) < 2 || mb_strlen($apellido) > 100) {
+            $this->redirigirConMensaje('El apellido debe tener entre 2 y 100 caracteres.', 'error');
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->redirigirConMensaje('El correo electrónico no tiene un formato válido.', 'error');
+        }
+        if (mb_strlen($email) > 150) {
+            $this->redirigirConMensaje('El correo electrónico no puede superar los 150 caracteres.', 'error');
         }
         if (strlen($password) < 6) {
             $this->redirigirConMensaje('La contraseña debe tener al menos 6 caracteres.', 'error');
@@ -139,7 +144,11 @@ class UsuariosController
         }
 
         if ($this->modelo->insertar($nombre, $apellido, $email, $password, (int)$id_rol, $activo)) {
-            $this->redirigirConMensaje("Usuario <strong>{$nombre} {$apellido}</strong> creado correctamente.", 'success');
+            // CORRECCIÓN #6: nombre se pasa escapado, no interpolado con HTML crudo
+            $this->redirigirConMensaje(
+                'Usuario <strong>' . e($nombre) . ' ' . e($apellido) . '</strong> creado correctamente.',
+                'success'
+            );
         } else {
             $this->redirigirConMensaje('Error al crear el usuario. Intenta nuevamente.', 'error');
         }
@@ -185,6 +194,9 @@ class UsuariosController
 
     private function actualizar(int $id): void
     {
+        // CORRECCIÓN #5: verificar CSRF antes de procesar cualquier dato POST
+        csrfVerify();
+
         $usuario = $this->modelo->consultarPorId($id);
 
         if (!$usuario) {
@@ -199,11 +211,27 @@ class UsuariosController
         $id_rol             = filter_var($_POST['id_rol'] ?? '', FILTER_VALIDATE_INT);
         $activo             = isset($_POST['activo']) ? true : false;
 
+        // ── Validaciones de caracteres ──
         if (empty($nombre) || empty($apellido)) {
             $this->redirigirConMensaje('El nombre y el apellido son requeridos.', 'error');
         }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/u', $nombre)) {
+            $this->redirigirConMensaje('El nombre solo puede contener letras y espacios.', 'error');
+        }
+        if (mb_strlen($nombre) < 2 || mb_strlen($nombre) > 100) {
+            $this->redirigirConMensaje('El nombre debe tener entre 2 y 100 caracteres.', 'error');
+        }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/u', $apellido)) {
+            $this->redirigirConMensaje('El apellido solo puede contener letras y espacios.', 'error');
+        }
+        if (mb_strlen($apellido) < 2 || mb_strlen($apellido) > 100) {
+            $this->redirigirConMensaje('El apellido debe tener entre 2 y 100 caracteres.', 'error');
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->redirigirConMensaje('El correo electrónico no tiene un formato válido.', 'error');
+        }
+        if (mb_strlen($email) > 150) {
+            $this->redirigirConMensaje('El correo electrónico no puede superar los 150 caracteres.', 'error');
         }
         if (strtolower($email) !== strtolower($usuario['email'])) {
             if ($this->modelo->emailExiste($email, $id)) {
@@ -226,7 +254,11 @@ class UsuariosController
         }
 
         if ($this->modelo->actualizar($id, $nombre, $apellido, $email, (int)$id_rol, $activo, $nuevaPassword)) {
-            $this->redirigirConMensaje("Usuario <strong>{$nombre} {$apellido}</strong> actualizado correctamente.", 'success');
+            // CORRECCIÓN #6: nombre se pasa escapado, no interpolado con HTML crudo
+            $this->redirigirConMensaje(
+                'Usuario <strong>' . e($nombre) . ' ' . e($apellido) . '</strong> actualizado correctamente.',
+                'success'
+            );
         } else {
             $this->redirigirConMensaje('Error al actualizar el usuario. Intenta nuevamente.', 'error');
         }
@@ -253,14 +285,16 @@ class UsuariosController
         $resultado = $this->modelo->eliminar($id);
 
         if ($resultado === true) {
+            // CORRECCIÓN #6: nombre escapado con e()
             $this->redirigirConMensaje(
-                "Usuario <strong>{$usuario['nombre']} {$usuario['apellido']}</strong> eliminado correctamente.",
+                'Usuario <strong>' . e($usuario['nombre']) . ' ' . e($usuario['apellido']) . '</strong> eliminado correctamente.',
                 'success'
             );
         } else {
+            // CORRECCIÓN #6: nombre escapado con e()
             $this->redirigirConMensaje(
-                "El usuario <strong>{$usuario['nombre']} {$usuario['apellido']}</strong> tiene registros vinculados " .
-                "y no puede eliminarse físicamente. La cuenta fue <strong>desactivada</strong> en su lugar.",
+                'El usuario <strong>' . e($usuario['nombre']) . ' ' . e($usuario['apellido']) . '</strong> tiene registros vinculados ' .
+                'y no puede eliminarse físicamente. La cuenta fue <strong>desactivada</strong> en su lugar.',
                 'warning'
             );
         }
@@ -279,8 +313,9 @@ class UsuariosController
         }
 
         if ($this->modelo->desbloquear($id)) {
+            // CORRECCIÓN #6: nombre escapado con e()
             $this->redirigirConMensaje(
-                "Cuenta de <strong>{$usuario['nombre']} {$usuario['apellido']}</strong> desbloqueada correctamente.",
+                'Cuenta de <strong>' . e($usuario['nombre']) . ' ' . e($usuario['apellido']) . '</strong> desbloqueada correctamente.',
                 'success'
             );
         } else {

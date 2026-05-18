@@ -69,7 +69,7 @@
 
   <form method="POST" action="" id="loginForm">
 
-    <?= csrfField() ?>  <!-- ✅ Token CSRF — LÍNEA AGREGADA -->
+    <?= csrfField() ?>  <!-- ✅ Token CSRF -->
 
     <?php if (!empty($error)): ?>
       <div class="error-message">
@@ -104,13 +104,28 @@
         placeholder="••••••••"
         required
       >
+      <!-- Link recuperar contraseña -->
+      <div class="forgot-link-wrap">
+        <a href="<?= BASE_URL ?>/index.php?pagina=recuperar_password" class="forgot-link">
+          ¿Olvidaste tu contraseña?
+        </a>
+      </div>
     </div>
 
     <button type="submit" class="btn-login">
       Iniciar Sesión
     </button>
 
-    <p class="login-footer-note">¿Eres nuevo? Contacta al administrador para obtener acceso.</p>
+    <!-- Separador -->
+    <div class="login-divider">
+      <span>¿Eres nuevo?</span>
+    </div>
+
+    <!-- Botón Crear cuenta -->
+    <a href="<?= BASE_URL ?>/index.php?pagina=registro" class="btn-create-account">
+      Crear nueva cuenta
+    </a>
+
   </form>
 
   <div class="login-footer">

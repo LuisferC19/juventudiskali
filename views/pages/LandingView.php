@@ -2,12 +2,6 @@
  
 <!-- ══════════════════════════════════════════════════════════════
      🎨 PERSONALIZACIÓN — NAVBAR
-     ══════════════════════════════════════════════════════════════
-     • nav-logo-ring : Reemplaza "ISK" por un <img> con el logo oficial:
-         <img src="<?= BASE_URL ?>/public/img/Logo.jpeg" alt="Iskali" width="36">
-     • nav-links     : Agrega o quita secciones según crezca la landing.
-     • icons8-login-50.svg : Puedes sustituirlo por FontAwesome/Material Icons.
-     • El href de "Iniciar sesión" NO debe cambiarse — es la ruta de auth.
      ══════════════════════════════════════════════════════════════ -->
 <nav id="navbar">
   <div class="nav-brand">
@@ -54,15 +48,6 @@
   <div class="shape shape-3"></div>
   <div class="shape shape-4"></div>
  
-  <!-- ══════════════════════════════════════════════════════════════
-       🎨 PERSONALIZACIÓN — SECCIÓN HERO
-       ══════════════════════════════════════════════════════════════
-       • hero-title    : Cambia el slogan principal de la organización.
-       • hero-sub      : Descripción breve (2-3 líneas max).
-       • hero-stats    : Actualiza los números conforme crezca la org.
-       • btn-hero-primary : Apunta al formulario de voluntariado en Google Forms.
-       • tag-float     : Etiquetas flotantes decorativas — personaliza el texto.
-       ══════════════════════════════════════════════════════════════ -->
   <div class="hero-inner">
     <div>
       <div class="hero-badge">
@@ -164,35 +149,58 @@
       </div>
  
       <div>
+        <!-- ══ TIMELINE CON IMÁGENES (mejorado) ══ -->
         <div class="section-label section-label-large">Nuestra historia</div>
         <div class="timeline-strip">
           <div class="tl-item">
             <div class="tl-year">2021</div>
             <div class="tl-dot"></div>
             <div class="tl-desc">Nace Juventud Iskali</div>
+            <div class="tl-img-wrap">
+              <img src="<?= BASE_URL ?>/public/img/actividades_2021.png" alt="Actividades 2021">
+            </div>
           </div>
           <div class="tl-item">
             <div class="tl-year">2022</div>
             <div class="tl-dot"></div>
-            <div class="tl-desc">Donaciones & bazares</div>
+            <div class="tl-desc">Donaciones &amp; bazares</div>
+            <div class="tl-img-wrap">
+              <img src="<?= BASE_URL ?>/public/img/actividades_2022.png" alt="Actividades 2022">
+            </div>
           </div>
           <div class="tl-item">
             <div class="tl-year">2023</div>
             <div class="tl-dot"></div>
-            <div class="tl-desc">Reforestaciones & Red Club</div>
+            <div class="tl-desc">Reforestaciones &amp; Red Club</div>
+            <div class="tl-img-wrap">
+              <img src="<?= BASE_URL ?>/public/img/actividades_2023.png" alt="Actividades 2023">
+            </div>
           </div>
           <div class="tl-item">
             <div class="tl-year">2024</div>
             <div class="tl-dot"></div>
             <div class="tl-desc">Fundación Iskali A.C.</div>
+            <div class="tl-img-wrap">
+              <img src="<?= BASE_URL ?>/public/img/actividades_2024.png" alt="Actividades 2024">
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2026</div>
+            <div class="tl-dot"></div>
+            <div class="tl-2025-badge">¡Hoy!</div>
+            <div class="tl-desc">Sistema Iskali</div>
+            <div class="tl-img-wrap">
+              <img src="<?= BASE_URL ?>/public/img/actividades_2025.png" alt="Actividades 2025">
+            </div>
           </div>
         </div>
+
         <div class="section-block">
-          <div class="section-label"><img src="<?= BASE_URL ?>/public/iconos/redes_sociales.png" alt="Ser voluntario" style="width:18px;height:18px;">  Redes sociales</div>
+          <div class="section-label"><img src="<?= BASE_URL ?>/public/iconos/redes_sociales.png" alt="Redes" style="width:18px;height:18px;">  Redes sociales</div>
           <p class="section-sub section-meta">
-           <img src="<?= BASE_URL ?>/public/iconos/logo_facebook.png" alt="Ser voluntario" style="width:18px;height:18px;"> <strong> Facebook:</strong> Juventud Iskali · 1.1K seguidores<br>
-           <img src="<?= BASE_URL ?>/public/iconos/logo_instagram.png" alt="Ser voluntario" style="width:18px;height:18px;"> <strong> Instagram:</strong> @juventud_iskali · 953 seguidores<br>
-           <img src="<?= BASE_URL ?>/public/iconos/Logo_tiktok.png" alt="Ser voluntario" style="width:18px;height:18px;"> <strong> TikTok:</strong> Juventud.iskali
+           <img src="<?= BASE_URL ?>/public/iconos/logo_facebook.png" alt="Facebook" style="width:18px;height:18px;"> <strong> Facebook:</strong> Juventud Iskali · 1.1K seguidores<br>
+           <img src="<?= BASE_URL ?>/public/iconos/logo_instagram.png" alt="Instagram" style="width:18px;height:18px;"> <strong> Instagram:</strong> @juventud_iskali · 953 seguidores<br>
+           <img src="<?= BASE_URL ?>/public/iconos/Logo_tiktok.png" alt="TikTok" style="width:18px;height:18px;"> <strong> TikTok:</strong> Juventud.iskali
           </p>
         </div>
       </div>
@@ -301,15 +309,14 @@
       </div>
       <div class="como-card">
         <div class="como-num n2">2</div>
-        <div class="como-icon"><img src="<?= BASE_URL ?>/public/iconos/colaboracion_equipo.png" alt="Ser voluntario" style="width:70px;height:70px;"></div>
+        <div class="como-icon"><img src="<?= BASE_URL ?>/public/iconos/colaboracion_equipo.png" alt="Colaborador" style="width:70px;height:70px;"></div>
         <div class="como-title">Colaborador</div>
-        <div class="como-desc">Si dispones de poco tiempo, pero cuentas con muchas ganas de ayudar y tienes un negocio, puedes ser uno de nuestros centros de acopio o un intermediario en tu comunidad para
-que podamos ayudar a más personas</div>
+        <div class="como-desc">Si dispones de poco tiempo, pero cuentas con muchas ganas de ayudar y tienes un negocio, puedes ser uno de nuestros centros de acopio o un intermediario en tu comunidad para que podamos ayudar a más personas</div>
         <a href="mailto:contacto@iskali.org" class="como-btn bt2">Ser colaborador</a>
       </div>
       <div class="como-card">
         <div class="como-num n3">3</div>
-        <div class="como-icon"><img src="<?= BASE_URL ?>/public/iconos/patrocinador.png" alt="Ser voluntario" style="width:70px;height:70px;"></div>
+        <div class="como-icon"><img src="<?= BASE_URL ?>/public/iconos/patrocinador.png" alt="Patrocinador" style="width:70px;height:70px;"></div>
         <div class="como-title">Patrocinador</div>
         <div class="como-desc">Colabora con una cuota monetaria o en especie destinada a casos específicos y campañas activas.</div>
         <a href="mailto:contacto@iskali.org" class="como-btn bt3">Patrocinar</a>
@@ -322,22 +329,22 @@ que podamos ayudar a más personas</div>
       <p class="section-sub" style="margin-bottom: 2rem;">Elige el tipo de participación que se ajuste mejor a ti y tus capacidades.</p>
       <div class="donor-type-grid">
         <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=anonimo" class="donor-type-card">
-          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/anonimo.png" alt="Ser voluntario" style="width:70px;height:70px;"></div>
+          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/anonimo.png" alt="Anónimo" style="width:70px;height:70px;"></div>
           <div class="donor-type-title">Anónimo (Invitado)</div>
           <div class="donor-type-desc">Dona sin registrarte, mantén tu privacidad</div>
         </a>
         <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=persona" class="donor-type-card">
-          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/persona.png" alt="Ser voluntario" style="width:70px;height:70px;"></div>
+          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/persona.png" alt="Persona" style="width:70px;height:70px;"></div>
           <div class="donor-type-title">Persona</div>
           <div class="donor-type-desc">Registro individual con tus datos</div>
         </a>
         <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=grupo" class="donor-type-card">
-          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/grupo.png" alt="Ser voluntario" style="width: 70px;height: 70px;"></div>
+          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/grupo.png" alt="Grupo" style="width: 70px;height: 70px;"></div>
           <div class="donor-type-title">Grupo</div>
           <div class="donor-type-desc">Colectivo o equipo de amigos</div>
         </a>
         <a href="<?= BASE_URL ?>/index.php?pagina=donadores&tipo=organizacion" class="donor-type-card">
-          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/empresa.png" alt="Ser voluntario" style="width: 70px;height: 70px;"></div>
+          <div class="donor-type-icon"><img src="<?= BASE_URL ?>/public/iconos/empresa.png" alt="Organización" style="width: 70px;height: 70px;"></div>
           <div class="donor-type-title">Organización</div>
           <div class="donor-type-desc">Empresa o institución oficial</div>
         </a>
@@ -346,21 +353,83 @@ que podamos ayudar a más personas</div>
   </div>
 </section>
  
+<!-- ══ COLABORADORES CON FOTOS (mejorado) ══ -->
 <section class="colab-bg">
   <div class="section-inner section-center">
     <div class="section-label">Colaboradores</div>
     <h2 class="section-title">Quienes <span>confían</span> en nosotros</h2>
-    <div class="colab-logos">
-      <div class="colab-chip"><div class="dot"></div>de Regil</div>
-      <div class="colab-chip"><div class="dot"></div>Creativa Colectiva</div>
-      <div class="colab-chip"><div class="dot"></div>Alebrijes — El derecho a ser diferentes</div>
-      <div class="colab-chip"><div class="dot"></div>DIVM Educación Especial</div>
-      <div class="colab-chip"><div class="dot"></div>Brilliant English</div>
-      <div class="colab-chip"><div class="dot"></div>Movimiento Juventud 2000</div>
-      <div class="colab-chip"><div class="dot"></div>Pizzas Nico</div>
-      <div class="colab-chip"><div class="dot"></div>Fit Body</div>
-      <div class="colab-chip"><div class="dot"></div>Venta de Productos D</div>
-      <div class="colab-chip"><div class="dot"></div>Papelería Nery Edgar</div>
+    <div class="colab-grid">
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador3_deRegil.jpeg" alt="de Regil">
+        </div>
+        <div class="colab-name">de Regil</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador1_CreativaColectiva.jpeg" alt="Creativa Colectiva">
+        </div>
+        <div class="colab-name">Creativa Colectiva</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador2_Alebrijes.jpeg" alt="Alebrijes">
+        </div>
+        <div class="colab-name">Alebrijes</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador5_DIVM.jpeg" alt="DIVM Educación Especial">
+        </div>
+        <div class="colab-name">DIVM Educación Especial</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador4_brillantEnglish.jpeg" alt="Brilliant English">
+        </div>
+        <div class="colab-name">Brilliant English</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador9_juventud2000.jpeg" alt="Juventud 2000">
+        </div>
+        <div class="colab-name">Movimiento Juventud 2000</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador7_PizzasNico.jpeg" alt="Pizzas Nico">
+        </div>
+        <div class="colab-name">Pizzas Nico</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador6_fitBody.jpeg" alt="Fit Body">
+        </div>
+        <div class="colab-name">Fit Body</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador8_VentaDProductos.jpeg" alt="Venta de Productos D">
+        </div>
+        <div class="colab-name">Venta de Productos D</div>
+      </div>
+
+      <div class="colab-card">
+        <div class="colab-photo">
+          <img src="<?= BASE_URL ?>/public/img/Colaborador10_papeleriaNery.jpeg" alt="Papelería Nery Edgar">
+        </div>
+        <div class="colab-name">Papelería Nery Edgar</div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -391,11 +460,20 @@ que podamos ayudar a más personas</div>
       </a>
     </div>
  
+    <!-- ══ QR MEJORADO ══ -->
     <div class="qr-section">
       <div class="qr-box">
-        <div class="qr-label"><img src="<?= BASE_URL ?>/public/iconos/formulario_firma.png" alt="Ser voluntario" style="width:18px;height:18px;"> Formulario de Voluntario</div>
-        <div class="qr-img"><img src="<?= BASE_URL ?>/public/img/Codigo_Informacion.jpeg" alt="Ser voluntario" style="width:100px;height:100px;"></div>
-        <div class="qr-desc">Escanea para<br>unirte al equipo</div>
+        <div class="qr-label">
+          <img src="<?= BASE_URL ?>/public/iconos/formulario_firma.png" alt="Formulario de Voluntario" style="width:16px;height:16px;">
+          Formulario de Voluntario
+        </div>
+        <div class="qr-img">
+          <img src="<?= BASE_URL ?>/public/img/Codigo_Informacion.jpeg" alt="Código QR Voluntario">
+        </div>
+        <div class="qr-badge">
+          <span class="qr-badge-dot"></span>
+          Escanea para unirte al equipo
+        </div>
       </div>
       <div class="qr-copy">
         <p class="qr-title">¿Listo para<br>ser parte del cambio?</p>
@@ -478,7 +556,7 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1 });
  
-document.querySelectorAll('.proj-card, .como-card, .value-card, .colab-chip').forEach(el => {
+document.querySelectorAll('.proj-card, .como-card, .value-card, .colab-card').forEach(el => {
   el.style.opacity = '0';
   el.style.transform = 'translateY(24px)';
   el.style.transition = 'opacity .5s ease, transform .5s ease';
@@ -487,4 +565,3 @@ document.querySelectorAll('.proj-card, .como-card, .value-card, .colab-chip').fo
 </script>
  
 <?php require_once 'views/layouts/footer.php'; ?>
- 
