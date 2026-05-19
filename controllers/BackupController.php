@@ -1,7 +1,8 @@
 <?php
 /**
  * controllers/BackupController.php
- * VERSION MEJORADA: exportación ZIP, importación ZIP, historial en BD.
+ * CORRECCIÓN: importación usa PDO como método principal (no requiere exec).
+ * exec/mysqldump se mantiene para exportar, con mejor manejo de errores.
  */
 class BackupController
 {
@@ -62,6 +63,14 @@ class BackupController
     {
         $this->verificarAccesoAdmin();
 
+        // CORRECCIÓN Bug #2: verificar exec() antes de intentar usar mysqldump
+        if (!$this->backupModel->isExecAvailable()) {
+            session_write_close();
+            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' .
+                urlencode('La función exec() está deshabilitada en este servidor. Contacta a tu proveedor de hosting para habilitar mysqldump.'));
+            exit;
+        }
+
         try {
             $backupDir = $this->backupModel->ensureBackupDirectory();
             $timestamp = date('Ymd_His');
@@ -75,10 +84,11 @@ class BackupController
             exec($command, $output, $returnCode);
 
             if ($returnCode !== 0) {
-                throw new Exception("Error al ejecutar mysqldump. Código: {$returnCode}");
+                $detalle = implode(' ', $output);
+                throw new Exception("Error al ejecutar mysqldump (código {$returnCode}). Detalle: {$detalle}");
             }
-            if (!file_exists($sqlFile)) {
-                throw new Exception("El archivo SQL no se generó correctamente.");
+            if (!file_exists($sqlFile) || filesize($sqlFile) === 0) {
+                throw new Exception("El archivo SQL no se generó o está vacío. Verifica que mysqldump esté instalado y accesible.");
             }
 
             // 2. Comprimir el .sql en un .zip
@@ -88,7 +98,7 @@ class BackupController
             }
             $zip->addFile($sqlFile, basename($sqlFile));
             $zip->close();
-            unlink($sqlFile); // eliminar el .sql temporal
+            unlink($sqlFile);
 
             if (!file_exists($zipFile)) {
                 throw new Exception("El archivo ZIP no se generó correctamente.");
@@ -108,7 +118,7 @@ class BackupController
                 'Respaldo manual generado desde el panel.'
             );
 
-            // 4. Enviar el ZIP al navegador y eliminarlo después de la descarga
+            // 4. Enviar el ZIP al navegador
             $this->descargarArchivo($zipFile, $filename, true);
 
         } catch (Exception $e) {
@@ -120,41 +130,59 @@ class BackupController
 
     // ─────────────────────────────────────────────
     //  IMPORTAR – restaura la BD desde un .zip
+    //  CORRECCIÓN: usa PDO como método principal.
+    //  No requiere exec() ni el binario mysql en el PATH.
     // ─────────────────────────────────────────────
 
     public function importar(): void
     {
         $this->verificarAccesoAdmin();
 
-        // Validar que llegó un archivo por POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['backup_file'])) {
-            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode('No se recibió ningún archivo.'));
+            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' .
+                urlencode('No se recibió ningún archivo.'));
             exit;
         }
 
         $file = $_FILES['backup_file'];
 
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode('Error al subir el archivo. Código PHP: ' . $file['error']));
+            $mensajesError = [
+                UPLOAD_ERR_INI_SIZE   => 'El archivo supera el límite de upload_max_filesize en php.ini.',
+                UPLOAD_ERR_FORM_SIZE  => 'El archivo supera el límite del formulario.',
+                UPLOAD_ERR_PARTIAL    => 'El archivo se subió de forma incompleta.',
+                UPLOAD_ERR_NO_FILE    => 'No se seleccionó ningún archivo.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal del servidor.',
+                UPLOAD_ERR_CANT_WRITE => 'No se pudo escribir el archivo en el disco.',
+                UPLOAD_ERR_EXTENSION  => 'Una extensión de PHP bloqueó la subida.',
+            ];
+            $msg = $mensajesError[$file['error']] ?? "Error al subir el archivo. Código PHP: {$file['error']}";
+            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode($msg));
             exit;
         }
 
         // Solo aceptar .zip
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'zip') {
-            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode('Solo se aceptan archivos .zip'));
+            header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' .
+                urlencode('Solo se aceptan archivos .zip generados por este sistema.'));
             exit;
         }
 
+        $backupDir = null;
+        $tempDir   = null;
+        $zipDestino = null;
+        $rutaSql    = null;
+
         try {
             $backupDir = $this->backupModel->ensureBackupDirectory();
-            $tempDir   = $backupDir . DIRECTORY_SEPARATOR . 'temp_import' . DIRECTORY_SEPARATOR;
+            $tempDir   = $backupDir . DIRECTORY_SEPARATOR . 'temp_import_' . time();
 
-            if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0755, true);
+            if (!mkdir($tempDir, 0755, true)) {
+                throw new Exception("No se pudo crear el directorio temporal de importación.");
             }
 
-            $zipDestino = $tempDir . basename($file['name']);
+            $zipDestino = $tempDir . DIRECTORY_SEPARATOR . basename($file['name']);
 
             if (!move_uploaded_file($file['tmp_name'], $zipDestino)) {
                 throw new Exception("No se pudo mover el archivo ZIP al servidor.");
@@ -165,7 +193,7 @@ class BackupController
             $sqlFile = null;
 
             if ($zip->open($zipDestino) !== true) {
-                throw new Exception("No se pudo abrir el archivo ZIP.");
+                throw new Exception("No se pudo abrir el archivo ZIP. ¿Está dañado?");
             }
 
             for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -178,28 +206,42 @@ class BackupController
 
             if (!$sqlFile) {
                 $zip->close();
-                unlink($zipDestino);
-                throw new Exception("El ZIP no contiene ningún archivo .sql válido.");
+                throw new Exception("El ZIP no contiene ningún archivo .sql válido. ¿Es un respaldo generado por este sistema?");
             }
 
             $zip->extractTo($tempDir, $sqlFile);
             $zip->close();
 
-            $rutaSql = $tempDir . $sqlFile;
+            // CORRECCIÓN: construir la ruta correctamente manejando posibles subdirectorios en el ZIP
+            $rutaSql = $tempDir . DIRECTORY_SEPARATOR . $sqlFile;
 
-            // Importar a MySQL
-            $comando    = $this->backupModel->getMysqlImportCommand($rutaSql);
-            $output     = [];
-            $returnCode = 0;
-            exec($comando, $output, $returnCode);
+            if (!file_exists($rutaSql) || filesize($rutaSql) === 0) {
+                throw new Exception("El archivo SQL extraído está vacío o no se encontró en: {$rutaSql}");
+            }
 
-            // Limpieza de temporales
-            if (file_exists($rutaSql))  { unlink($rutaSql); }
-            if (file_exists($zipDestino)){ unlink($zipDestino); }
-            if (is_dir($tempDir))        { @rmdir($tempDir); }
+            // ── Importar: PDO primero, exec como fallback ──────────────
+            $metodo = 'PDO';
+            try {
+                $this->backupModel->importarConPDO($rutaSql);
+            } catch (Exception $pdoEx) {
+                // Fallback a exec/mysql si PDO falla Y exec está disponible
+                if ($this->backupModel->isExecAvailable()) {
+                    $metodo  = 'exec/mysql';
+                    $comando = $this->backupModel->getMysqlImportCommand($rutaSql);
+                    $output  = [];
+                    $retCode = 0;
+                    exec($comando, $output, $retCode);
 
-            if ($returnCode !== 0) {
-                throw new Exception("Error al importar el SQL. Detalle: " . implode(' ', $output));
+                    if ($retCode !== 0) {
+                        throw new Exception(
+                            "PDO falló: {$pdoEx->getMessage()} | " .
+                            "mysql CLI también falló: " . implode(' ', $output)
+                        );
+                    }
+                } else {
+                    // Solo PDO disponible y falló
+                    throw new Exception("Error al importar via PDO: " . $pdoEx->getMessage());
+                }
             }
 
             // Registrar en historial
@@ -210,7 +252,7 @@ class BackupController
                 'ZIP',
                 $file['size'],
                 $usuarioId,
-                'Restauración manual desde el panel de administración.'
+                "Restauración manual (método: {$metodo}) desde el panel de administración."
             );
 
             session_write_close();
@@ -221,6 +263,17 @@ class BackupController
             session_write_close();
             header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode($e->getMessage()));
             exit;
+        } finally {
+            // CORRECCIÓN Bug #6: limpiar el directorio temporal de forma recursiva
+            if ($rutaSql && file_exists($rutaSql)) {
+                @unlink($rutaSql);
+            }
+            if ($zipDestino && file_exists($zipDestino)) {
+                @unlink($zipDestino);
+            }
+            if ($tempDir && is_dir($tempDir)) {
+                $this->backupModel->eliminarDirectorioRecursivo($tempDir);
+            }
         }
     }
 
