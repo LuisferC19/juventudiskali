@@ -1,4 +1,6 @@
 <?php
+require_once 'models/NotificacionModel.php';
+
 /**
  * controllers/BackupController.php
  * CORRECCIÓN: importación usa PDO como método principal (no requiere exec).
@@ -20,7 +22,7 @@ class BackupController
     //  Seguridad
     // ─────────────────────────────────────────────
 
-    private function verificarAccesoAdmin(): void
+    private function verificarAcceso(string $accion): void
     {
         if (empty($_SESSION['id_usuario'])) {
             session_write_close();
@@ -28,12 +30,9 @@ class BackupController
             exit;
         }
 
-        if (empty($_SESSION['rol']) || $_SESSION['rol'] !== 'Administrador') {
-            $pagina_activa = 'respaldos';
-            $titulo_pagina = 'Respaldos - Acceso Denegado';
-            $error         = 'Acceso denegado. Solo administradores pueden gestionar respaldos.';
-            $historial     = [];
-            require_once 'views/pages/RespaldosView.php';
+        if (!in_array($_SESSION['rol'] ?? '', ['Administrador', 'Auditor'], true) || !usuarioPuede('respaldos', $accion)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para realizar esta acción.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
             exit;
         }
     }
@@ -44,13 +43,14 @@ class BackupController
 
     public function index(): void
     {
-        $this->verificarAccesoAdmin();
+        $this->verificarAcceso('ver');
 
         $pagina_activa = 'respaldos';
         $titulo_pagina = 'Respaldos de Base de Datos';
         $error         = $_GET['error']   ?? '';
         $exito         = $_GET['exito']   ?? '';
         $historial     = $this->backupModel->obtenerHistorial(50);
+        $conexion      = $this->db;
 
         require_once 'views/pages/RespaldosView.php';
     }
@@ -61,7 +61,7 @@ class BackupController
 
     public function generar(): void
     {
-        $this->verificarAccesoAdmin();
+        $this->verificarAcceso('crear');
 
         // CORRECCIÓN Bug #2: verificar exec() antes de intentar usar mysqldump
         if (!$this->backupModel->isExecAvailable()) {
@@ -118,6 +118,8 @@ class BackupController
                 'Respaldo manual generado desde el panel.'
             );
 
+            $this->notificarRespaldoCompletado((int)$usuarioId, $filename);
+
             // 4. Enviar el ZIP al navegador
             $this->descargarArchivo($zipFile, $filename, true);
 
@@ -125,6 +127,24 @@ class BackupController
             session_write_close();
             header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' . urlencode($e->getMessage()));
             exit;
+        }
+    }
+
+    private function notificarRespaldoCompletado(int $idUsuario, string $filename): void
+    {
+        try {
+            $notificaciones = new NotificacionModel($this->db);
+            $notificaciones->crear([
+                'id_usuario' => $idUsuario,
+                'tipo' => 'sistema',
+                'asunto' => 'Respaldo completado',
+                'mensaje' => 'Se generó correctamente el archivo ' . $filename . '.',
+                'canal' => 'web',
+                'id_tipo_ref' => null,
+                'id_referencia' => null,
+            ]);
+        } catch (Throwable $error) {
+            logger('No se pudo notificar respaldo completado: ' . $error->getMessage());
         }
     }
 
@@ -136,7 +156,7 @@ class BackupController
 
     public function importar(): void
     {
-        $this->verificarAccesoAdmin();
+        $this->verificarAcceso('editar');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['backup_file'])) {
             header('Location: ' . BASE_URL . '/index.php?pagina=respaldos&error=' .

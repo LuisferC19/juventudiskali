@@ -298,4 +298,4 @@ function emitirReconocimiento(e) {
 }
 </script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

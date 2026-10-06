@@ -22,28 +22,37 @@ class UsuariosController
     public function index(): void
     {
         $this->verificarSesion();
-        $this->verificarRol(['Administrador']);
+        $this->verificarRol(['Administrador', 'Auditor', 'Soporte', 'Legal']);
+
+        if (!usuarioPuede('usuarios', 'ver')) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para ver este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
 
         $accion = trim($_GET['accion'] ?? '');
-        $metodo = $_SERVER['REQUEST_METHOD'];
+        $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         // El id puede venir en GET (editar, desbloquear) o en POST oculto (borrar)
         $idRaw  = $_GET['id'] ?? $_POST['id'] ?? null;
         $id     = isset($idRaw) ? filter_var($idRaw, FILTER_VALIDATE_INT) : null;
 
         // ── POST: Crear nuevo usuario
         if ($accion === 'crear' && $metodo === 'POST') {
+            $this->verificarPermiso('crear');
             $this->crear();
             return;
         }
 
         // ── GET: Formulario vacío para crear
         if ($accion === 'nuevo' && $metodo === 'GET') {
+            $this->verificarPermiso('crear');
             $this->formularioNuevo();
             return;
         }
 
         // ── GET / POST: Editar usuario existente
         if ($accion === 'editar' && $id) {
+            $this->verificarPermiso('editar');
             if ($metodo === 'POST') {
                 $this->actualizar((int)$id);
             } else {
@@ -54,12 +63,14 @@ class UsuariosController
 
         // ── POST: Eliminar usuario (requiere POST para evitar borrados por link/GET)
         if ($accion === 'borrar' && $id && $metodo === 'POST') {
+            $this->verificarPermiso('eliminar');
             $this->eliminar((int)$id);
             return;
         }
 
         // ── GET: Desbloquear usuario (resetear intentos fallidos)
         if ($accion === 'desbloquear' && $id && $metodo === 'GET') {
+            $this->verificarPermiso('editar');
             $this->desbloquear((int)$id);
             return;
         }
@@ -86,6 +97,7 @@ class UsuariosController
 
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Usuarios del Sistema';
+        $conexion      = $this->db;
         require_once 'views/pages/UsuariosView.php';
     }
 
@@ -167,6 +179,7 @@ class UsuariosController
         $usuario       = null;
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Nuevo Usuario';
+        $conexion      = $this->db;
         require_once 'views/pages/Usuarios_FormView.php';
     }
 
@@ -187,6 +200,7 @@ class UsuariosController
         $id_usuario    = $id;
         $pagina_activa = 'usuarios';
         $titulo_pagina = 'Editar Usuario';
+        $conexion      = $this->db;
         require_once 'views/pages/Usuarios_FormView.php';
     }
 
@@ -353,5 +367,12 @@ class UsuariosController
         $_SESSION['usuarios_tipo']    = $tipo;
         header('Location: ' . BASE_URL . '/index.php?pagina=usuarios');
         exit;
+    }
+
+    private function verificarPermiso(string $accion): void
+    {
+        if (!usuarioPuede('usuarios', $accion)) {
+            $this->redirigirConMensaje('No tienes permiso para realizar esta acción.', 'error');
+        }
     }
 }

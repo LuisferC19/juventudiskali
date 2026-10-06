@@ -22,18 +22,26 @@ class PlanningController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Supervisor', 'Logística', 'Analista']);
+
+        if (!usuarioPuede('planning', 'ver')) {
+            $this->responderSinPermiso();
+            return;
+        }
 
         $accion = trim($_GET['accion'] ?? '');
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         // AJAX: Crear actividad
         if ($accion === 'crear' && $metodo === 'POST') {
+            if (!usuarioPuede('planning', 'crear')) { $this->responderSinPermiso(); return; }
             $this->crear();
             return;
         }
 
         // AJAX: Actualizar estado
         if ($accion === 'actualizar_estado' && $metodo === 'POST') {
+            if (!usuarioPuede('planning', 'editar')) { $this->responderSinPermiso(); return; }
             $this->actualizarEstado();
             return;
         }
@@ -64,9 +72,8 @@ class PlanningController
         $pagina_activa = 'planning';
         $titulo_pagina = 'Planning & Actividades';
 
-        require_once 'views/layouts/header.php';
+        $conexion = $this->db;
         require_once 'views/pages/PlanningView.php';
-        require_once 'views/layouts/footer.php';
     }
 
     /**
@@ -155,6 +162,9 @@ class PlanningController
      */
     public function getActividadesMes(): void
     {
+        $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Supervisor', 'Logística', 'Analista']);
+        if (!usuarioPuede('planning', 'ver')) { $this->responderSinPermiso(); return; }
         header('Content-Type: application/json');
 
         $mes = filter_var($_GET['mes'] ?? date('m'), FILTER_VALIDATE_INT);
@@ -177,5 +187,21 @@ class PlanningController
             header('Location: ' . BASE_URL . '/index.php?pagina=login');
             exit;
         }
+    }
+
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    private function responderSinPermiso(): void
+    {
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode(['error' => 'No tienes permiso para realizar esta acción']);
     }
 }

@@ -33,6 +33,53 @@ function sanitizeInt(mixed $value): ?int
     return ($result !== false && $result > 0) ? (int)$result : null;
 }
 
+/**
+ * Verifica si el usuario actual tiene permisos sobre un módulo concreto.
+ * Uso: usuarioPuede('donadores', 'editar')
+ */
+function usuarioPuede(string $modulo, string $accion): bool
+{
+    $rolActual = trim((string)($_SESSION['rol'] ?? ''));
+
+    if ($rolActual === '') {
+        return false;
+    }
+
+    $db = null;
+    try {
+        require_once __DIR__ . '/config/Database.php';
+        $db = new Database();
+        $conexion = $db->getConnection();
+
+        $stmt = $conexion->prepare(
+            'SELECT p.id_rol, p.modulo, p.puede_ver, p.puede_crear, p.puede_editar, p.puede_eliminar
+             FROM roles r
+             INNER JOIN permisos_rol p ON p.id_rol = r.id_rol
+             WHERE LOWER(r.nombre) = LOWER(?)
+               AND LOWER(p.modulo) = LOWER(?)
+             LIMIT 1'
+        );
+        $stmt->execute([$rolActual, $modulo]);
+        $permiso = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$permiso) {
+            return false;
+        }
+
+        $acciones = [
+            'ver'    => (bool)($permiso['puede_ver'] ?? false),
+            'crear'  => (bool)($permiso['puede_crear'] ?? false),
+            'editar' => (bool)($permiso['puede_editar'] ?? false),
+            'eliminar' => (bool)($permiso['puede_eliminar'] ?? false),
+        ];
+
+        return $acciones[$accion] ?? false;
+    } catch (Throwable $e) {
+        logger('usuarioPuede error: ' . $e->getMessage());
+        return false;
+    }
+}
+
 // ---------------------------------------------------------------------------
 //  LOGGER
 // ---------------------------------------------------------------------------

@@ -22,30 +22,40 @@ class VoluntariosController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Supervisor', 'Logística', 'Analista']);
+
+        if (!usuarioPuede('voluntarios', 'ver')) {
+            $this->responderSinPermiso();
+            return;
+        }
 
         $accion = trim($_GET['accion'] ?? '');
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         // AJAX: Registrar asistencia
         if ($accion === 'registrar_asistencia' && $metodo === 'POST') {
+            if (!usuarioPuede('voluntarios', 'crear')) { $this->responderSinPermiso(); return; }
             $this->registrarAsistencia();
             return;
         }
 
         // AJAX: Generar token QR
         if ($accion === 'generar_qr' && $metodo === 'POST') {
+            if (!usuarioPuede('voluntarios', 'crear')) { $this->responderSinPermiso(); return; }
             $this->generarTokenQR();
             return;
         }
 
         // AJAX: Validar QR
         if ($accion === 'validar_qr' && $metodo === 'POST') {
+            if (!usuarioPuede('voluntarios', 'editar')) { $this->responderSinPermiso(); return; }
             $this->validarQR();
             return;
         }
 
         // AJAX: Obtener asistencia de actividad
         if ($accion === 'obtener_asistencia' && $metodo === 'GET') {
+            if (!usuarioPuede('voluntarios', 'ver')) { $this->responderSinPermiso(); return; }
             $this->obtenerAsistencia();
             return;
         }
@@ -65,9 +75,8 @@ class VoluntariosController
         $pagina_activa = 'voluntarios';
         $titulo_pagina = 'Voluntarios';
 
-        require_once 'views/layouts/header.php';
+        $conexion = $this->db;
         require_once 'views/pages/VoluntariosView.php';
-        require_once 'views/layouts/footer.php';
     }
 
     /**
@@ -179,5 +188,21 @@ class VoluntariosController
             header('Location: ' . BASE_URL . '/index.php?pagina=login');
             exit;
         }
+    }
+
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    private function responderSinPermiso(): void
+    {
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode(['error' => 'No tienes permiso para realizar esta acción']);
     }
 }

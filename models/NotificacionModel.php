@@ -104,6 +104,10 @@ class NotificacionModel
      */
     public function crear(array $data): bool
     {
+        if (!isset($data['tipo']) || !is_string($data['tipo']) || trim($data['tipo']) === '') {
+            throw new InvalidArgumentException('El tipo de notificación es obligatorio.');
+        }
+
         $query = "
             INSERT INTO notificaciones 
             (id_usuario, tipo, asunto, mensaje, canal, leida, id_tipo_ref, id_referencia, fecha_creacion)
@@ -114,7 +118,7 @@ class NotificacionModel
 
         return $stmt->execute([
             ':id_usuario'    => $data['id_usuario'] ?? null,
-            ':tipo'          => $data['tipo'] ?? 'info',
+            ':tipo'          => $data['tipo'],
             ':asunto'        => $data['asunto'] ?? '',
             ':mensaje'       => $data['mensaje'] ?? '',
             ':canal'         => $data['canal'] ?? 'web',

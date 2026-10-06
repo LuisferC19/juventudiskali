@@ -50,7 +50,9 @@ require_once 'views/layouts/header.php';
           <h3>Beneficiarios</h3>
           <div class="toolbar">
             <input type="text" class="search-input" placeholder="Buscar beneficiario..." oninput="filtrarTabla(this,'tabla-beneficiarios')">
-            <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=nuevo" class="btn btn-primary">+ Registrar</a>
+            <?php if (usuarioPuede('beneficiarios', 'crear')): ?>
+              <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=nuevo" class="btn btn-primary">+ Registrar</a>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -102,14 +104,18 @@ require_once 'views/layouts/header.php';
                     <td style="padding:12px;"><?= e($beneficiario['registrado_por'] ?? '—') ?></td>
                     <td style="padding:12px;"><?= isset($beneficiario['created_at']) ? date('d/m/Y', strtotime($beneficiario['created_at'])) : '—' ?></td>
                     <td style="padding:12px;white-space:nowrap;">
-                      <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=editar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>" class="btn btn-secondary btn-sm" style="margin:2px;">Editar</a>
-                      <form method="POST"
-                            action="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=borrar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>"
-                            style="display:inline;"
-                            onsubmit="return confirm('¿Eliminar este beneficiario?');">
-                        <?= csrfField() ?>
-                        <button type="submit" class="btn btn-danger btn-sm" style="margin:2px;">Eliminar</button>
-                      </form>
+                      <?php if (usuarioPuede('beneficiarios', 'editar')): ?>
+                        <a href="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=editar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>" class="btn btn-secondary btn-sm" style="margin:2px;">Editar</a>
+                      <?php endif; ?>
+                      <?php if (usuarioPuede('beneficiarios', 'eliminar')): ?>
+                        <form method="POST"
+                              action="<?= BASE_URL ?>/index.php?pagina=beneficiarios&accion=borrar&id=<?= e((string) $beneficiario['id_beneficiario']) ?>"
+                              style="display:inline;"
+                              onsubmit="return confirm('¿Eliminar este beneficiario?');">
+                          <?= csrfField() ?>
+                          <button type="submit" class="btn btn-danger btn-sm" style="margin:2px;">Eliminar</button>
+                        </form>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -123,4 +129,4 @@ require_once 'views/layouts/header.php';
   </div>
 </div>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

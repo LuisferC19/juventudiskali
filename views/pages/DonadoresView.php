@@ -49,7 +49,9 @@ require_once 'views/layouts/header.php';
           <h3>Donadores</h3>
           <div class="toolbar">
             <input type="text" class="search-input" placeholder="Buscar donador..." oninput="filtrarTabla(this,'tabla-donadores')">
-            <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=crear" class="btn btn-primary">+ Nuevo donador</a>
+            <?php if (usuarioPuede('donadores', 'crear')): ?>
+              <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=crear" class="btn btn-primary">+ Nuevo donador</a>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -86,14 +88,18 @@ require_once 'views/layouts/header.php';
                 <td><?= e($donador['nivel'] ?? '—') ?></td>
                 <td><?= $donador['activo'] ? 'Sí' : 'No' ?></td>
                 <td>
-                  <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=editar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-secondary btn-sm">Editar</a>
-                  <form method="POST"
-                        action="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>"
-                        style="display:inline;"
-                        onsubmit="return confirm('¿Eliminar este donador?');">
-                    <?= csrfField() ?>
-                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                  </form>
+                  <?php if (usuarioPuede('donadores', 'editar')): ?>
+                    <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=editar&id=<?= e((string) $donador['id_donador']) ?>" class="btn btn-secondary btn-sm">Editar</a>
+                  <?php endif; ?>
+                  <?php if (usuarioPuede('donadores', 'eliminar')): ?>
+                    <form method="POST"
+                          action="<?= BASE_URL ?>/index.php?pagina=donadores&accion=eliminar&id=<?= e((string) $donador['id_donador']) ?>"
+                          style="display:inline;"
+                          onsubmit="return confirm('¿Eliminar este donador?');">
+                      <?= csrfField() ?>
+                      <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                  <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -105,4 +111,4 @@ require_once 'views/layouts/header.php';
   </div>
 </div>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

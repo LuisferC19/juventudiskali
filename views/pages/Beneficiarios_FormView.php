@@ -257,4 +257,4 @@ function toggleTipoBeneficiario() {
 document.addEventListener('DOMContentLoaded', toggleTipoBeneficiario);
 </script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

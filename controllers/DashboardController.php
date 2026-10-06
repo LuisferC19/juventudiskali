@@ -12,7 +12,7 @@ class DashboardController
 {
     private ?PDO $db;
 
-    public function __construct(PDO $conexion = null)
+    public function __construct(?PDO $conexion = null)
     {
         $this->db = $conexion;
     }
@@ -23,6 +23,24 @@ class DashboardController
     {
         if (empty($_SESSION['id_usuario'])) {
             header('Location: ' . BASE_URL . '/index.php?pagina=login');
+            exit;
+        }
+    }
+
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    private function verificarModulo(string $modulo): void
+    {
+        if (!usuarioPuede($modulo, 'ver')) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para ver este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
             exit;
         }
     }
@@ -49,6 +67,7 @@ class DashboardController
     {
         if (!$this->db) return [];
         try {
+            // Las consultas que pasan por este helper son SQL estáticas, sin entrada del usuario.
             $stmt = $this->db->query($sql);
             return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         } catch (\Exception $e) {
@@ -279,6 +298,8 @@ class DashboardController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Donador', 'Comunicación', 'Inventarista', 'Beneficiario', 'Supervisor', 'Soporte', 'Logística', 'Analista', 'Captador', 'Legal', 'Externo']);
+        $this->verificarModulo('dashboard');
 
         $pagina_activa = 'dashboard';
         $titulo_pagina = 'Dashboard';
@@ -316,6 +337,7 @@ class DashboardController
         [$grol_labels, $grol_data, $grol_demo]            = $this->buildRoleUserSeries();
 
         $campanas_activas = $this->fetchActiveCampaigns();
+        $conexion          = $this->db;
 
         require_once 'views/pages/DashboardView.php';
     }
@@ -327,14 +349,18 @@ class DashboardController
         $this->verificarSesion();
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Donadores';
+        $conexion = $this->db;
         require_once 'views/pages/DonadoresView.php';
     }
 
     public function donaciones(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Donador', 'Beneficiario', 'Captador', 'Legal', 'Externo']);
+        $this->verificarModulo('donaciones');
         $pagina_activa = 'donaciones';
         $titulo_pagina = 'Donaciones';
+        $conexion = $this->db;
         require_once 'views/pages/DonacionesView.php';
     }
 
@@ -343,22 +369,29 @@ class DashboardController
         $this->verificarSesion();
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Beneficiarios';
+        $conexion = $this->db;
         require_once 'views/pages/BeneficiariosView.php';
     }
 
     public function entregas(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Inventarista', 'Supervisor', 'Logística', 'Captador', 'Externo']);
+        $this->verificarModulo('entregas');
         $pagina_activa = 'entregas';
         $titulo_pagina = 'Entregas';
+        $conexion = $this->db;
         require_once 'views/pages/EntregasView.php';
     }
 
     public function inventario(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Inventarista', 'Logística']);
+        $this->verificarModulo('inventario');
         $pagina_activa = 'inventario';
         $titulo_pagina = 'Inventario';
+        $conexion = $this->db;
         require_once 'views/pages/InventarioView.php';
     }
 
@@ -367,14 +400,18 @@ class DashboardController
         $this->verificarSesion();
         $pagina_activa = 'voluntarios';
         $titulo_pagina = 'Voluntarios';
+        $conexion = $this->db;
         require_once 'views/pages/VoluntariosView.php';
     }
 
     public function gamificacion(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Voluntario', 'Donador', 'Comunicación', 'Beneficiario', 'Externo']);
+        $this->verificarModulo('gamificacion');
         $pagina_activa = 'gamificacion';
         $titulo_pagina = 'Gamificación';
+        $conexion = $this->db;
         require_once 'views/pages/GamificacionView.php';
     }
 }

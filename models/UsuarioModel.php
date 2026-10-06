@@ -27,6 +27,7 @@ class UsuarioModel
      */
     public function consultar(): array
     {
+        // consulta estática, sin parámetros de usuario.
         $sql = "
             SELECT
                 u.id_usuario,
@@ -79,7 +80,8 @@ class UsuarioModel
      */
     public function obtenerTotal(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) AS total FROM usuarios");
+        // consulta estática, sin parámetros de usuario.
+        $stmt = $this->db->query('SELECT COUNT(*) AS total FROM usuarios');
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
     }
@@ -89,7 +91,8 @@ class UsuarioModel
      */
     public function obtenerTotalActivos(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) AS total FROM usuarios WHERE activo = 1");
+        // consulta estática, sin parámetros de usuario.
+        $stmt = $this->db->query('SELECT COUNT(*) AS total FROM usuarios WHERE activo = 1');
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
     }
@@ -327,7 +330,8 @@ class UsuarioModel
      */
     public function obtenerRoles(): array
     {
-        $stmt = $this->db->query("SELECT id_rol, nombre FROM roles ORDER BY nombre ASC");
+        // consulta estática, sin parámetros de usuario.
+        $stmt = $this->db->query('SELECT id_rol, nombre FROM roles ORDER BY nombre ASC');
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 }

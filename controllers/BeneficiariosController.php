@@ -22,23 +22,38 @@ class BeneficiariosController
     public function index(): void
     {
         $this->verificarSesion();
-        $this->verificarRol(['Administrador']);
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Captador', 'Analista', 'Legal']);
+
+        if (!usuarioPuede('beneficiarios', 'ver')) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para ver este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
 
         $accion = trim($_GET['accion'] ?? '');
         $id     = sanitizeInt($_GET['id'] ?? null);
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         if ($accion === 'crear' && $metodo === 'POST') {
+            if (!usuarioPuede('beneficiarios', 'crear')) {
+                $this->redirigirConMensaje('No tienes permiso para crear beneficiarios.', 'error');
+            }
             $this->crear();
             return;
         }
 
         if ($accion === 'nuevo' && $metodo === 'GET') {
+            if (!usuarioPuede('beneficiarios', 'crear')) {
+                $this->redirigirConMensaje('No tienes permiso para crear beneficiarios.', 'error');
+            }
             $this->formularioNuevo();
             return;
         }
 
         if ($accion === 'editar' && $id) {
+            if (!usuarioPuede('beneficiarios', 'editar')) {
+                $this->redirigirConMensaje('No tienes permiso para editar beneficiarios.', 'error');
+            }
             if ($metodo === 'POST') {
                 $this->actualizar($id);
             } else {
@@ -49,6 +64,9 @@ class BeneficiariosController
 
         // borrar requiere POST (no GET)
         if ($accion === 'borrar' && $id && $metodo === 'POST') {
+            if (!usuarioPuede('beneficiarios', 'eliminar')) {
+                $this->redirigirConMensaje('No tienes permiso para eliminar beneficiarios.', 'error');
+            }
             $this->eliminar($id);
             return;
         }
@@ -73,6 +91,7 @@ class BeneficiariosController
         $consulta      = $buscar;
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Beneficiarios';
+        $conexion      = $this->db;
         require_once 'views/pages/BeneficiariosView.php';
     }
 
@@ -138,6 +157,7 @@ class BeneficiariosController
         $accion        = 'nuevo';
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Nuevo Beneficiario';
+        $conexion      = $this->db;
         require_once 'views/pages/Beneficiarios_FormView.php';
     }
 
@@ -153,6 +173,7 @@ class BeneficiariosController
         $accion        = 'editar';
         $pagina_activa = 'beneficiarios';
         $titulo_pagina = 'Editar Beneficiario';
+        $conexion      = $this->db;
         require_once 'views/pages/Beneficiarios_FormView.php';
     }
 

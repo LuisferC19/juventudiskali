@@ -15,9 +15,11 @@ require_once 'models/DonadorModel.php';
 class DonadoresController
 {
     private DonadorModel $modelo;
+    private PDO $db;
 
     public function __construct(PDO $conexion)
     {
+        $this->db     = $conexion;
         $this->modelo = new DonadorModel($conexion);
     }
 
@@ -56,7 +58,13 @@ class DonadoresController
     public function index(): void
     {
         $this->verificarSesion();
-        $this->verificarRol(['Administrador']);
+        $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Captador', 'Analista', 'Legal']);
+
+        if (!usuarioPuede('donadores', 'ver')) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para ver este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
 
         $accion = trim($_GET['accion'] ?? 'listar');
         $id     = sanitizeInt($_GET['id'] ?? null);
@@ -65,10 +73,19 @@ class DonadoresController
         // ── POST: crear, editar, eliminar ─────────────────────────────────
         if ($metodo === 'POST') {
             if ($accion === 'crear') {
+                if (!usuarioPuede('donadores', 'crear')) {
+                    $this->redirigirConMensaje('No tienes permiso para crear donadores.', 'error');
+                }
                 $this->guardarNuevo();
             } elseif ($accion === 'editar' && $id) {
+                if (!usuarioPuede('donadores', 'editar')) {
+                    $this->redirigirConMensaje('No tienes permiso para editar donadores.', 'error');
+                }
                 $this->guardarEdicion($id);
             } elseif ($accion === 'eliminar' && $id) {
+                if (!usuarioPuede('donadores', 'eliminar')) {
+                    $this->redirigirConMensaje('No tienes permiso para eliminar donadores.', 'error');
+                }
                 $this->eliminarDonador($id);
             }
             return;
@@ -77,9 +94,15 @@ class DonadoresController
         // ── GET: formularios y listado ────────────────────────────────────
         switch ($accion) {
             case 'crear':
+                if (!usuarioPuede('donadores', 'crear')) {
+                    $this->redirigirConMensaje('No tienes permiso para crear donadores.', 'error');
+                }
                 $this->mostrarFormularioNuevo();
                 break;
             case 'editar':
+                if (!usuarioPuede('donadores', 'editar')) {
+                    $this->redirigirConMensaje('No tienes permiso para editar donadores.', 'error');
+                }
                 $id ? $this->mostrarFormularioEdicion($id) : $this->mostrarListado();
                 break;
             case 'listar':
@@ -102,6 +125,7 @@ class DonadoresController
 
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Donadores';
+        $conexion      = $this->db;
         require_once 'views/pages/DonadoresView.php';
     }
 
@@ -110,6 +134,7 @@ class DonadoresController
         $donador       = null;
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Nuevo Donador';
+        $conexion      = $this->db;
         require_once 'views/pages/Donadores_FormView.php';
     }
 
@@ -123,6 +148,7 @@ class DonadoresController
 
         $pagina_activa = 'donadores';
         $titulo_pagina = 'Editar Donador';
+        $conexion      = $this->db;
         require_once 'views/pages/Donadores_FormView.php';
     }
 

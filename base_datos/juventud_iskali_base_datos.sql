@@ -956,3 +956,58 @@ INSERT INTO respaldos (tipo_operacion, nombre_archivo, formato, nombre_bd, taman
 ('IMPORTACION', 'respaldo_20260516_215139.zip', 'ZIP', 'iskali', 12380, 16, '2026-05-17 02:51:59', 'Restauración manual desde el panel de administración.'),
 ('EXPORTACION', 'respaldo_20260516_215229.zip', 'ZIP', 'iskali', 12406, 16, '2026-05-17 02:52:30', 'Respaldo manual generado desde el panel.'),
 ('EXPORTACION', 'respaldo_20260517_132059.zip', 'ZIP', 'iskali', 12430, 16, '2026-05-17 18:21:04', 'Respaldo manual generado desde el panel.');
+
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(1, 'Fernanda',  'Ortiz Ramírez',   'fernanda.admin@iskalli.mx', '$2b$10$vojdTRa0fkNsKtouGLfzm.cdfdBH0U.YqUb8wveqMrgkVYQX3EpmW', TRUE, 0, NOW()),
+(1, 'Ricardo',   'Nava Salinas',    'ricardo.admin@iskalli.mx',  '$2b$10$X1j7fBvbJno3XLT/hNOHz.LAVJ57hef4zsVHdpKlKJHOj1MY8PxzC', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(2, 'Paola',     'Contreras Díaz',  'paola.coord@iskalli.mx',    '$2b$10$pCmCsYHhF5HFHs0UP84pPeT5H6zVWiX4zdfOVbK6dzZd/BNlOuEU6', TRUE, 0, NOW()),
+(2, 'Jonathan',  'Reyes Peña',      'jonathan.coord@iskalli.mx', '$2b$10$HFI8gsqNzqS9cniWkMNFouXz5QHzCEAzp.CInew.Erlmh98246PZu', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(3, 'Ximena',    'Bautista Cortés', 'ximena.vol@iskalli.mx',     '$2b$10$97UzejafboleRZXHkezQbOdZJpTxkcF0z8DGtGT15rVU8e7U4Dvze', TRUE, 0, NOW()),
+(3, 'Emilio',    'Pacheco Rivas',   'emilio.vol@iskalli.mx',     '$2b$10$6X8p65SNwDxlECyXRAFoQuSeQhl5PySWENThZ0RVukRiDHriNuq3q', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(4, 'Gabriela',  'Solís Márquez',   'gabriela.aud@iskalli.mx',   '$2b$10$pGes2x/T5X0Mk.8dIONLEuu2kZULo3TT1eqSwkSSJqjIWaMmLoCMe', TRUE, 0, NOW()),
+(4, 'Iván',      'Camacho Luna',    'ivan.aud@iskalli.mx',       '$2b$10$16nhmXkfhPGxzUPyXaLAUOPJPc/Y9x7eA9iyWxvR1ORE6VMowevZO', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(5, 'Karla',     'Villaseñor Ochoa','karla.don@iskalli.mx',      '$2b$10$JHPkwpoyvVHvkc0tdb15cOoQy6JnAIpj9xyb5Y/0MBPGzHq36Q9pu', TRUE, 0, NOW()),
+(5, 'Sebastián', 'Aguilar Ponce',   'sebastian.don@iskalli.mx',  '$2b$10$itNhrzL2fGKo3dgJGgqbqews6kgjWUZt9tVx1gW3GHZM//OtMvPji', TRUE, 0, NOW());
+
+INSERT INTO donadores (id_nivel, tipo_donante, puntos_acumulados, email, telefono, activo, created_at)
+VALUES (1, 'persona', 0, 'monica.duran@email.com', '2224455001', TRUE, NOW());
+INSERT INTO donadores_fisicos (id_donador, nombre, apellido, fecha_nacimiento)
+VALUES (LAST_INSERT_ID(), 'Mónica', 'Durán Espinoza', '1990-04-12');
+
+INSERT INTO donadores (id_nivel, tipo_donante, puntos_acumulados, email, telefono, activo, created_at)
+VALUES (2, 'organizacion', 0, 'contacto@gruposolidario.mx', '2224455002', TRUE, NOW());
+INSERT INTO donadores_morales (id_donador, razon_social, giro_comercial, representante_legal)
+VALUES (LAST_INSERT_ID(), 'Grupo Solidario A.C.', 'Asociación civil', 'Renata Cabrera Islas');
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(1, 'Jess', 'TODO_APELLIDO', 'TODO_correo_jess@iskali.mx', '$2b$10$vojdTRa0fkNsKtouGLfzm.cdfdBH0U.YqUb8wveqMrgkVYQX3EpmW', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(1, 'Vero', 'TODO_APELLIDO', 'TODO_correo_vero@iskali.mx', '$2b$10$X1j7fBvbJno3XLT/hNOHz.LAVJ57hef4zsVHdpKlKJHOj1MY8PxzC', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(4, 'Cynthia', 'TODO_APELLIDO', 'TODO_correo_cynthia@iskali.mx', '$2b$10$pCmCsYHhF5HFHs0UP84pPeT5H6zVWiX4zdfOVbK6dzZd/BNlOuEU6', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(2, 'Eva', 'TODO_APELLIDO', 'TODO_correo_eva@iskali.mx', '$2b$10$HFI8gsqNzqS9cniWkMNFouXz5QHzCEAzp.CInew.Erlmh98246PZu', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(2, 'Annel', 'TODO_APELLIDO', 'TODO_correo_annel@iskali.mx', '$2b$10$97UzejafboleRZXHkezQbOdZJpTxkcF0z8DGtGT15rVU8e7U4Dvze', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(3, 'Karla', 'TODO_APELLIDO', 'TODO_correo_karla@iskali.mx', '$2b$10$6X8p65SNwDxlECyXRAFoQuSeQhl5PySWENThZ0RVukRiDHriNuq3q', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(3, 'Jaque', 'TODO_APELLIDO', 'TODO_correo_jaque@iskali.mx', '$2b$10$pGes2x/T5X0Mk.8dIONLEuu2kZULo3TT1eqSwkSSJqjIWaMmLoCMe', TRUE, 0, NOW());
+
+INSERT INTO usuarios (id_rol, nombre, apellido, email, contrasena_hash, activo, intentos_fallidos, created_at) VALUES
+(3, 'Jhoana', 'TODO_APELLIDO', 'TODO_correo_jhoana@iskali.mx', '$2b$10$16nhmXkfhPGxzUPyXaLAUOPJPc/Y9x7eA9iyWxvR1ORE6VMowevZO', TRUE, 0, NOW());

@@ -1,141 +1,81 @@
-<?php
-/**
- * views/pages/DonacionesView.php
- * Registro y gestión de donaciones recibidas.
- */
-require_once 'views/layouts/header.php';
-?>
+<?php require_once 'views/layouts/header.php'; ?>
 
 <div style="display:flex;width:100%;">
   <?php require_once 'views/layouts/sidebar.php'; ?>
-
   <div class="main">
     <?php require_once 'views/layouts/topbar.php'; ?>
-
     <div class="content">
-
-      <!-- KPIs de donaciones -->
       <div class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-label">Total recibido</div>
-          <div class="kpi-value">$84,200</div>
-        </div>
-        <div class="kpi amber">
-          <div class="kpi-label">Pendientes</div>
-          <div class="kpi-value">14</div>
-        </div>
-        <div class="kpi blue">
-          <div class="kpi-label">Asignadas</div>
-          <div class="kpi-value">38</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Entregadas</div>
-          <div class="kpi-value">579</div>
-        </div>
+        <div class="kpi"><div class="kpi-label">Donaciones listadas</div><div class="kpi-value"><?= e((string)$total) ?></div></div>
+        <div class="kpi amber"><div class="kpi-label">Pendientes</div><div class="kpi-value"><?= e((string)$total_pendientes) ?></div></div>
+        <div class="kpi blue"><div class="kpi-label">Verificadas</div><div class="kpi-value"><?= e((string)$total_verificadas) ?></div></div>
       </div>
-
-      <!-- Tabla de donaciones -->
       <div class="card">
         <div class="card-header">
           <h3>Donaciones</h3>
           <div class="toolbar">
             <input type="text" class="search-input" placeholder="Buscar..." oninput="filtrarTabla(this,'tabla-donaciones')">
-            <select style="width:120px;">
-              <option value="">Todos</option>
-              <option>Pendiente</option>
-              <option>Asignada</option>
-              <option>Entregada</option>
-            </select>
-            <button class="btn btn-primary" onclick="openModal('modal-donacion')">+ Nueva donación</button>
+            <?php if (usuarioPuede('donaciones', 'crear')): ?>
+              <a class="btn btn-primary" href="<?= BASE_URL ?>/index.php?pagina=donaciones&accion=crear">+ Nueva donación</a>
+            <?php endif; ?>
           </div>
         </div>
-
-        <!-- Tabs de filtrado visual -->
-        <div class="tabs">
-          <div class="tab active" onclick="activarTab(this)">Todas</div>
-          <div class="tab" onclick="activarTab(this)">Pendientes</div>
-          <div class="tab" onclick="activarTab(this)">Asignadas</div>
-          <div class="tab" onclick="activarTab(this)">Entregadas</div>
-          <div class="tab" onclick="activarTab(this)">Monetarias</div>
-          <div class="tab" onclick="activarTab(this)">En especie</div>
-        </div>
-
+        <?php if (!empty($mensaje)): ?>
+          <div class="alert <?= $tipo_mensaje === 'error' ? 'alert-danger' : 'alert-success' ?>" role="alert"><?= e($mensaje) ?></div>
+        <?php endif; ?>
+        <form method="GET" action="<?= BASE_URL ?>/index.php" class="toolbar" style="padding:16px;">
+          <input type="hidden" name="pagina" value="donaciones">
+          <label for="filtro-estado">Estado</label>
+          <select id="filtro-estado" name="estado">
+            <option value="">Todos</option>
+            <?php foreach (['pendiente', 'recibida', 'verificada', 'rechazada'] as $opcion): ?>
+              <option value="<?= e($opcion) ?>" <?= ($_GET['estado'] ?? '') === $opcion ? 'selected' : '' ?>><?= e(ucfirst($opcion)) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <label for="filtro-campana">Campaña</label>
+          <select id="filtro-campana" name="id_campana">
+            <option value="">Todas</option>
+            <?php foreach ($campanas as $campana): ?>
+              <option value="<?= e((string)$campana['id_campana']) ?>" <?= (string)($_GET['id_campana'] ?? '') === (string)$campana['id_campana'] ? 'selected' : '' ?>><?= e($campana['nombre']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <button type="submit" class="btn btn-secondary">Filtrar</button>
+        </form>
         <table id="tabla-donaciones">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Donador</th>
-              <th>Tipo</th>
-              <th>Cantidad</th>
-              <th>Fecha recepción</th>
-              <th>Campaña</th>
-              <th>Registrado por</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
+          <thead><tr><th>ID</th><th>Donador</th><th>Tipo</th><th>Cantidad / monto</th><th>Fecha recepción</th><th>Campaña</th><th>Registrado por</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
-            <tr>
-              <td>#R001</td>
-              <td>María García</td>
-              <td>Víveres</td>
-              <td>20 kg</td>
-              <td>2026-03-15</td>
-              <td>Víveres Marzo</td>
-              <td>Eva Sánchez</td>
-              <td><span class="badge badge-green">Entregada</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="showToast('Detalle de donación #R001')">Ver</button></td>
-            </tr>
-            <tr>
-              <td>#R002</td>
-              <td>Empresa Alfa</td>
-              <td>Monetaria</td>
-              <td>$5,000</td>
-              <td>2026-03-16</td>
-              <td>Útiles</td>
-              <td>Eva Sánchez</td>
-              <td><span class="badge badge-amber">Pendiente</span></td>
-              <td><button class="btn btn-primary btn-sm" onclick="openModal('modal-entrega')">Asignar</button></td>
-            </tr>
-            <tr>
-              <td>#R003</td>
-              <td>Luis Torres</td>
-              <td>Ropa</td>
-              <td>15 pzas</td>
-              <td>2026-03-17</td>
-              <td>Invierno 2026</td>
-              <td>Jessica R.</td>
-              <td><span class="badge badge-blue">Asignada</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="showToast('Detalle de donación #R003')">Ver</button></td>
-            </tr>
-            <tr>
-              <td>#R004</td>
-              <td>Comercial Beta</td>
-              <td>Monetaria</td>
-              <td>$10,000</td>
-              <td>2026-03-10</td>
-              <td>Invierno 2026</td>
-              <td>Eva Sánchez</td>
-              <td><span class="badge badge-green">Entregada</span></td>
-              <td><button class="btn btn-secondary btn-sm" onclick="showToast('Detalle de donación #R004')">Ver</button></td>
-            </tr>
-            <tr>
-              <td>#R005</td>
-              <td>Ana Ruiz</td>
-              <td>Medicamentos</td>
-              <td>3 cajas</td>
-              <td>2026-03-18</td>
-              <td>Medicamentos Urgentes</td>
-              <td>Jessica R.</td>
-              <td><span class="badge badge-amber">Pendiente</span></td>
-              <td><button class="btn btn-primary btn-sm" onclick="openModal('modal-entrega')">Asignar</button></td>
-            </tr>
+            <?php foreach ($donaciones as $donacion): ?>
+              <tr>
+                <td>#<?= e((string)$donacion['id_donacion']) ?></td>
+                <td><?= e(trim($donacion['donador'] ?? '') ?: '—') ?></td>
+                <td><?= e($donacion['detalle']) ?></td>
+                <td><?= e(number_format((float)$donacion['cantidad_monto'], 2)) ?> <?= e($donacion['unidad_medida'] ?? '') ?></td>
+                <td><?= e($donacion['fecha_recepcion']) ?></td>
+                <td><?= e($donacion['campana']) ?></td>
+                <td><?= e(trim($donacion['registrador'] ?? '') ?: '—') ?></td>
+                <td><span class="badge <?= $donacion['estado'] === 'verificada' ? 'badge-green' : ($donacion['estado'] === 'rechazada' ? 'badge-gray' : ($donacion['estado'] === 'recibida' ? 'badge-blue' : 'badge-amber')) ?>"><?= e(ucfirst($donacion['estado'])) ?></span></td>
+                <td>
+                  <?php if (usuarioPuede('donaciones', 'editar') && in_array($donacion['estado'], ['pendiente', 'recibida'], true)): ?>
+                    <form method="POST" action="<?= BASE_URL ?>/index.php?pagina=donaciones&accion=cambiar-estado&id=<?= e((string)$donacion['id_donacion']) ?>" style="display:flex;gap:6px;align-items:center;">
+                      <?= csrfField() ?>
+                      <select name="estado" aria-label="Nuevo estado de donación">
+                        <?php if ($donacion['estado'] === 'pendiente'): ?>
+                          <option value="recibida">Recibida</option><option value="rechazada">Rechazada</option>
+                        <?php else: ?>
+                          <option value="verificada">Verificada</option><option value="rechazada">Rechazada</option>
+                        <?php endif; ?>
+                      </select>
+                      <button type="submit" class="btn btn-secondary btn-sm">Actualizar</button>
+                    </form>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+            <?php if (!$donaciones): ?><tr><td colspan="9" style="text-align:center;color:var(--muted);">No hay donaciones para los filtros seleccionados.</td></tr><?php endif; ?>
           </tbody>
         </table>
       </div>
-
     </div>
   </div>
 </div>
-
 <?php require_once 'views/layouts/footer.php'; ?>

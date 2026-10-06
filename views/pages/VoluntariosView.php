@@ -321,4 +321,4 @@ document.addEventListener('click', function(event) {
 <!-- Cargar librería QR Code (CDN) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

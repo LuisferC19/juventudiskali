@@ -22,24 +22,33 @@ class NotificacionesController
     public function index(): void
     {
         $this->verificarSesion();
+        $this->verificarRol(['Administrador', 'Coordinador', 'Voluntario', 'Auditor', 'Donador', 'Comunicación', 'Inventarista', 'Beneficiario', 'Supervisor', 'Soporte', 'Logística', 'Analista', 'Captador', 'Legal', 'Externo']);
+
+        if (!usuarioPuede('notificaciones', 'ver')) {
+            $this->responderSinPermiso();
+            return;
+        }
 
         $accion = trim($_GET['accion'] ?? '');
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         // AJAX: Marcar leída
         if ($accion === 'marcar_leida' && $metodo === 'POST') {
+            if (!usuarioPuede('notificaciones', 'editar')) { $this->responderSinPermiso(); return; }
             $this->marcarLeida();
             return;
         }
 
         // AJAX: Marcar todas como leídas
         if ($accion === 'marcar_todas' && $metodo === 'POST') {
+            if (!usuarioPuede('notificaciones', 'editar')) { $this->responderSinPermiso(); return; }
             $this->marcarTodasLeidas();
             return;
         }
 
         // AJAX: Obtener últimas notificaciones (para dropdown)
         if ($accion === 'ultimas' && $metodo === 'GET') {
+            if (!usuarioPuede('notificaciones', 'ver')) { $this->responderSinPermiso(); return; }
             $this->obtenerUltimas();
             return;
         }
@@ -60,9 +69,8 @@ class NotificacionesController
         $pagina_activa = 'notificaciones';
         $titulo_pagina = 'Notificaciones';
 
-        require_once 'views/layouts/header.php';
+        $conexion = $this->db;
         require_once 'views/pages/NotificacionesView.php';
-        require_once 'views/layouts/footer.php';
     }
 
     /**
@@ -137,5 +145,21 @@ class NotificacionesController
             header('Location: ' . BASE_URL . '/index.php?pagina=login');
             exit;
         }
+    }
+
+    private function verificarRol(array $rolesPermitidos): void
+    {
+        if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+            $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+            header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+            exit;
+        }
+    }
+
+    private function responderSinPermiso(): void
+    {
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode(['error' => 'No tienes permiso para realizar esta acción']);
     }
 }

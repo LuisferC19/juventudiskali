@@ -564,4 +564,4 @@ document.querySelectorAll('.proj-card, .como-card, .value-card, .colab-card').fo
 });
 </script>
  
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

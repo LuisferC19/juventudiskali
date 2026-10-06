@@ -206,6 +206,7 @@ class DonadorModel {
      * Obtener total de donadores
      */
     public function obtenerTotal(): int {
+        // consulta estática, sin parámetros de usuario.
         $stmt = $this->db->query('SELECT COUNT(*) AS total FROM donadores');
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
@@ -215,7 +216,8 @@ class DonadorModel {
      * Obtener total de donadores activos
      */
     public function obtenerTotalActivos(): int {
-        $stmt = $this->db->query("SELECT COUNT(*) AS total FROM donadores WHERE activo = 1");
+        // consulta estática, sin parámetros de usuario.
+        $stmt = $this->db->query('SELECT COUNT(*) AS total FROM donadores WHERE activo = 1');
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
     }
@@ -243,6 +245,7 @@ class DonadorModel {
                 END
         ";
 
+        // consulta SQL construida de forma estática; no depende de entrada del usuario.
         $stmt = $this->db->query($sql);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

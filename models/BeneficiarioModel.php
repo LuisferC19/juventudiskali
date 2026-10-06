@@ -119,6 +119,7 @@ class BeneficiarioModel
 
     public function obtenerTotal(): int
     {
+        // consulta estática, sin parámetros de usuario.
         $stmt = $this->db->query('SELECT COUNT(*) AS total FROM beneficiarios');
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
@@ -126,6 +127,7 @@ class BeneficiarioModel
 
     public function obtenerTotalActivos(): int
     {
+        // consulta estática, sin parámetros de usuario.
         $stmt = $this->db->query("SELECT COUNT(*) AS total FROM beneficiarios WHERE estado = 'activo'");
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
@@ -141,6 +143,7 @@ class BeneficiarioModel
 
     public function consultarComunidades(): array
     {
+        // consulta estática, sin parámetros de usuario.
         $stmt = $this->db->query('SELECT id_comunidad, nombre FROM comunidades ORDER BY nombre ASC');
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }

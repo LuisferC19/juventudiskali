@@ -7,16 +7,16 @@ require_once 'views/layouts/header.php';
 
 // Helpers de estado
 $estadoMeta = [
-    'planeada'   => ['label' => 'Planeada',   'color' => '#6366f1', 'bg' => '#eef2ff', 'dot' => '#6366f1'],
-    'en_curso'   => ['label' => 'En curso',   'color' => '#d97706', 'bg' => '#fffbeb', 'dot' => '#f59e0b'],
-    'completada' => ['label' => 'Completada', 'color' => '#059669', 'bg' => '#ecfdf5', 'dot' => '#10b981'],
-    'cancelada'  => ['label' => 'Cancelada',  'color' => '#dc2626', 'bg' => '#fef2f2', 'dot' => '#ef4444'],
+  'planeada'   => ['label' => 'Planeada',   'color' => 'var(--blue)', 'bg' => '#E5EEFF', 'dot' => 'var(--blue)'],
+  'en_curso'   => ['label' => 'En curso',   'color' => '#9A6A00', 'bg' => '#FEF5DC', 'dot' => 'var(--amber)'],
+  'completada' => ['label' => 'Completada', 'color' => '#157A45', 'bg' => '#E4F5ED', 'dot' => 'var(--accent)'],
+  'cancelada'  => ['label' => 'Cancelada',  'color' => 'var(--danger)', 'bg' => '#FDECEA', 'dot' => 'var(--danger)'],
 ];
 
 $zonaMeta = [
-    'san_martin' => ['label' => 'San Martín', 'color' => '#0891b2', 'bg' => '#e0f2fe'],
-    'tlaxcala'   => ['label' => 'Tlaxcala',   'color' => '#7c3aed', 'bg' => '#f5f3ff'],
-    'ambas'      => ['label' => 'Ambas',       'color' => '#0aafa0', 'bg' => '#f0fdfa'],
+  'san_martin' => ['label' => 'San Martín', 'color' => 'var(--blue)', 'bg' => '#E5EEFF'],
+  'tlaxcala'   => ['label' => 'Tlaxcala',   'color' => 'var(--pink)', 'bg' => '#FBEAF0'],
+  'ambas'      => ['label' => 'Ambas',       'color' => 'var(--accent)', 'bg' => '#E4F5ED'],
 ];
 
 $meses_es = [
@@ -33,54 +33,49 @@ $csrf = csrfToken();
   <div class="main">
     <?php require_once 'views/layouts/topbar.php'; ?>
 
-    <div class="content" style="padding:24px 28px;background:#f8fffe;min-height:calc(100vh - 60px);">
+    <div class="content">
 
       <!-- ══ Encabezado ══════════════════════════════════════════════════════ -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:12px;">
         <div>
-          <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#1a2e2c;margin:0 0 4px;">
+          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin:0 0 4px;">
             Planning & Actividades
           </h2>
-          <p style="font-size:13px;color:#5a8a84;margin:0;">
+          <p style="font-size:12.5px;color:var(--muted);margin:0;">
             <?= $nombre_mes ?> <?= $anio_actual ?> — gestión de actividades por zona
           </p>
         </div>
-        <button onclick="abrirModal()" style="display:inline-flex;align-items:center;gap:8px;background:#0aafa0;color:#fff;border:none;border-radius:12px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;box-shadow:0 4px 14px rgba(10,175,160,.3);"
-          onmouseover="this.style.background='#057a6f'" onmouseout="this.style.background='#0aafa0'">
+        <button class="btn btn-primary" onclick="abrirModal()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nueva actividad
         </button>
       </div>
 
       <!-- ══ KPI Cards ════════════════════════════════════════════════════════ -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
 
-        <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;padding:18px 20px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:#0aafa0;border-radius:4px 0 0 4px;"></div>
-          <div style="font-size:11px;font-weight:600;color:#5a8a84;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Total actividades</div>
-          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#1a2e2c;line-height:1;"><?= (int)$kpis['total_actividades'] ?></div>
-          <div style="font-size:11px;color:#0aafa0;margin-top:4px;">registradas</div>
+        <div class="kpi">
+          <div class="kpi-label">Total actividades</div>
+          <div class="kpi-value"><?= (int)$kpis['total_actividades'] ?></div>
+          <div class="kpi-sub">registradas</div>
         </div>
 
-        <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;padding:18px 20px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:#f59e0b;border-radius:4px 0 0 4px;"></div>
-          <div style="font-size:11px;font-weight:600;color:#5a8a84;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Esta semana</div>
-          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#1a2e2c;line-height:1;"><?= (int)$kpis['actividades_semana'] ?></div>
-          <div style="font-size:11px;color:#f59e0b;margin-top:4px;">programadas</div>
+        <div class="kpi amber">
+          <div class="kpi-label">Esta semana</div>
+          <div class="kpi-value"><?= (int)$kpis['actividades_semana'] ?></div>
+          <div class="kpi-sub">programadas</div>
         </div>
 
-        <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;padding:18px 20px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:#0891b2;border-radius:4px 0 0 4px;"></div>
-          <div style="font-size:11px;font-weight:600;color:#5a8a84;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">San Martín</div>
-          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#1a2e2c;line-height:1;"><?= (int)$kpis['san_martin'] ?></div>
-          <div style="font-size:11px;color:#0891b2;margin-top:4px;">actividades</div>
+        <div class="kpi blue">
+          <div class="kpi-label">San Martín</div>
+          <div class="kpi-value"><?= (int)$kpis['san_martin'] ?></div>
+          <div class="kpi-sub">actividades</div>
         </div>
 
-        <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;padding:18px 20px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:#7c3aed;border-radius:4px 0 0 4px;"></div>
-          <div style="font-size:11px;font-weight:600;color:#5a8a84;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Tlaxcala</div>
-          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#1a2e2c;line-height:1;"><?= (int)$kpis['tlaxcala'] ?></div>
-          <div style="font-size:11px;color:#7c3aed;margin-top:4px;">actividades</div>
+        <div class="kpi danger">
+          <div class="kpi-label">Tlaxcala</div>
+          <div class="kpi-value"><?= (int)$kpis['tlaxcala'] ?></div>
+          <div class="kpi-sub">actividades</div>
         </div>
 
       </div>
@@ -89,10 +84,10 @@ $csrf = csrfToken();
       <div style="display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start;">
 
         <!-- ─ Calendario ─────────────────────────────────────────────────── -->
-        <div style="background:#fff;border-radius:20px;border:1px solid #e0f2f0;overflow:hidden;">
+        <div class="card" style="overflow:hidden;">
 
           <!-- Cabecera del calendario -->
-          <div style="padding:18px 22px;border-bottom:1px solid #e0f2f0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div class="card-header">
             <div style="display:flex;align-items:center;gap:12px;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0aafa0" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#1a2e2c;">
@@ -193,8 +188,8 @@ $csrf = csrfToken();
         <div style="display:flex;flex-direction:column;gap:14px;">
 
           <!-- Filtro de zona -->
-          <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;padding:16px 18px;">
-            <div style="font-size:11px;font-weight:700;color:#5a8a84;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Filtrar por zona</div>
+          <div class="card" style="padding:16px;">
+            <div class="kpi-label">Filtrar por zona</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <?php
                 $zona_actual = $_GET['zona'] ?? 'todas';
@@ -210,10 +205,10 @@ $csrf = csrfToken();
           </div>
 
           <!-- Lista de actividades próximas -->
-          <div style="background:#fff;border-radius:16px;border:1px solid #e0f2f0;overflow:hidden;">
-            <div style="padding:14px 18px;border-bottom:1px solid #f0fdfa;">
-              <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#1a2e2c;">Actividades del mes</span>
-              <span style="margin-left:8px;background:#f0fdfa;color:#0aafa0;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;"><?= count($actividades) ?></span>
+          <div class="card" style="overflow:hidden;">
+            <div class="card-header">
+              <h3>Actividades del mes</h3>
+              <span class="badge badge-green"><?= count($actividades) ?></span>
             </div>
 
             <div style="max-height:420px;overflow-y:auto;">
@@ -527,4 +522,4 @@ spinStyle.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transfor
 document.head.appendChild(spinStyle);
 </script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

@@ -40,7 +40,7 @@ switch ($pagina) {
 
     case 'campanas':
         require_once 'controllers/CampanasController.php';
-        (new CampanasController())->index();
+        (new CampanasController($conexion))->index();
         break;
 
     case 'usuarios':
@@ -54,8 +54,8 @@ switch ($pagina) {
         break;
 
     case 'donaciones':
-        require_once 'controllers/DashboardController.php';
-        (new DashboardController($conexion))->donaciones();
+        require_once 'controllers/DonacionesController.php';
+        (new DonacionesController($conexion))->index();
         break;
 
     case 'beneficiarios':
@@ -64,8 +64,8 @@ switch ($pagina) {
         break;
 
     case 'entregas':
-        require_once 'controllers/DashboardController.php';
-        (new DashboardController($conexion))->entregas();
+        require_once 'controllers/EntregasController.php';
+        (new EntregasController($conexion))->index();
         break;
 
     case 'inventario':
@@ -140,19 +140,23 @@ switch ($pagina) {
     case 'home':
     case 'inicio':
         require_once 'controllers/InicioController.php';
+        // El controlador de inicio no usa PDO: se encarga de mostrar la landing y redirigir sesión activa.
         (new InicioController())->index();
         break;
 
-        case 'registro':
-    require_once 'views/pages/RegistroView.php';
-    break;
-    
+    case 'registro':
+        require_once 'controllers/AuthController.php';
+        (new AuthController($conexion))->registro();
+        break;
+
     case 'recuperar_password':
-    require_once 'views/pages/RecuperarPasswordView.php';
-    break;
+        require_once 'controllers/AuthController.php';
+        (new AuthController($conexion))->recuperarPassword();
+        break;
 
     default:
         require_once 'controllers/InicioController.php';
+        // El controlador por defecto tampoco necesita PDO.
         (new InicioController())->index();
         break;
         

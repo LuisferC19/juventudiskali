@@ -49,9 +49,12 @@ class ReportesController
     public function index(): void
     {
         $this->verificarSesion();
+      $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Comunicación', 'Inventarista', 'Supervisor', 'Soporte', 'Logística', 'Analista', 'Captador', 'Legal', 'Externo']);
+      $this->verificarPermiso();
 
         $pagina_activa = 'reportes';
         $titulo_pagina = 'Reportes';
+        $conexion      = $this->db;
 
         require_once 'views/pages/ReportesView.php';
     }
@@ -63,23 +66,46 @@ class ReportesController
     public function generar(): void
     {
         $this->verificarSesion();
+      $this->verificarRol(['Administrador', 'Coordinador', 'Auditor', 'Comunicación', 'Inventarista', 'Supervisor', 'Soporte', 'Logística', 'Analista', 'Captador', 'Legal', 'Externo']);
+      $this->verificarPermiso();
 
-        $tipo = trim($_GET['tipo'] ?? '');
+        $tipo  = trim($_GET['tipo'] ?? '');
+        // RF005: rango de fechas opcional, viene de los inputs <input type="date"> de la vista.
+        $desde = trim($_GET['desde'] ?? '');
+        $hasta = trim($_GET['hasta'] ?? '');
 
         switch ($tipo) {
             case 'donadores':
-                $this->reporteDonadores();
+                $this->reporteDonadores($desde, $hasta);
                 break;
             case 'beneficiarios':
-                $this->reporteBeneficiarios();
+                $this->reporteBeneficiarios($desde, $hasta);
                 break;
             case 'campanas':
-                $this->reporteCampanas();
+                $this->reporteCampanas($desde, $hasta);
                 break;
             default:
                 header('Location: ' . BASE_URL . '/index.php?pagina=reportes&error=tipo_invalido');
                 exit;
         }
+    }
+
+    /**
+     * RF005 — Construye la frase de periodo que se muestra en el subtítulo
+     * del reporte cuando el usuario aplicó un filtro de fechas.
+     */
+    private function fraseFiltroFechas(string $desde, string $hasta): string
+    {
+        if ($desde === '' && $hasta === '') {
+            return '';
+        }
+        if ($desde !== '' && $hasta !== '') {
+            return "   |   Periodo: {$desde} al {$hasta}";
+        }
+        if ($desde !== '') {
+            return "   |   Periodo: desde {$desde}";
+        }
+        return "   |   Periodo: hasta {$hasta}";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -320,13 +346,31 @@ class ReportesController
         return "<span class=\"badge badge-{$claseSegura}\">{$textoSeguro}</span>";
     }
 
+    private function verificarRol(array $rolesPermitidos): void
+    {
+      if (!in_array($_SESSION['rol'] ?? '', $rolesPermitidos, true)) {
+        $_SESSION['error_acceso'] = 'No tienes permiso para acceder a este módulo.';
+        header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+        exit;
+      }
+    }
+
+    private function verificarPermiso(): void
+    {
+      if (!usuarioPuede('reportes', 'ver')) {
+        $_SESSION['error_acceso'] = 'No tienes permiso para ver este módulo.';
+        header('Location: ' . BASE_URL . '/index.php?pagina=dashboard');
+        exit;
+      }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     //  REPORTE: Donadores
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function reporteDonadores(): void
+    private function reporteDonadores(string $desde = '', string $hasta = ''): void
     {
-        $data      = $this->model->getResumenDonadores();
+        $data      = $this->model->getResumenDonadores($desde ?: null, $hasta ?: null);
         $filas     = $data['filas'];
         $total     = $data['total'];
         $activos   = $data['activos'];
@@ -375,7 +419,8 @@ class ReportesController
           <tbody>{$filasHtml}</tbody>
         </table>";
 
-        $subtitulo = "Total: {$total} donadores   |   Activos: {$activos}   |   Inactivos: {$inactivos}";
+        $subtitulo = "Total: {$total} donadores   |   Activos: {$activos}   |   Inactivos: {$inactivos}"
+                   . $this->fraseFiltroFechas($desde, $hasta);
         $this->renderReporte('LISTADO DE DONADORES', $subtitulo, $cuerpo);
     }
 
@@ -383,9 +428,9 @@ class ReportesController
     //  REPORTE: Beneficiarios
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function reporteBeneficiarios(): void
+    private function reporteBeneficiarios(string $desde = '', string $hasta = ''): void
     {
-        $data      = $this->model->getResumenBeneficiarios();
+        $data      = $this->model->getResumenBeneficiarios($desde ?: null, $hasta ?: null);
         $filas     = $data['filas'];
         $total     = $data['total'];
         $activos   = $data['activos'];
@@ -445,7 +490,8 @@ class ReportesController
           <tbody>{$filasHtml}</tbody>
         </table>";
 
-        $subtitulo = "Total: {$total}   |   Activos: {$activos}   |   En espera: {$espera}   |   Inactivos: {$inactivos}";
+        $subtitulo = "Total: {$total}   |   Activos: {$activos}   |   En espera: {$espera}   |   Inactivos: {$inactivos}"
+                   . $this->fraseFiltroFechas($desde, $hasta);
         $this->renderReporte('LISTADO DE BENEFICIARIOS', $subtitulo, $cuerpo);
     }
 
@@ -453,9 +499,9 @@ class ReportesController
     //  REPORTE: Campañas
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function reporteCampanas(): void
+    private function reporteCampanas(string $desde = '', string $hasta = ''): void
     {
-        $data      = $this->model->getResumenCampanas();
+        $data      = $this->model->getResumenCampanas($desde ?: null, $hasta ?: null);
         $filas     = $data['filas'];
         $total     = $data['total'];
         $totalMeta = $data['totalMeta'];
@@ -513,7 +559,8 @@ class ReportesController
           <tbody>{$filasHtml}</tbody>
         </table>";
 
-        $subtitulo = "Total: {$total} campañas   |   Meta económica acumulada: $" . number_format($totalMeta, 2);
+        $subtitulo = "Total: {$total} campañas   |   Meta económica acumulada: $" . number_format($totalMeta, 2)
+                   . $this->fraseFiltroFechas($desde, $hasta);
         $this->renderReporte('LISTADO DE CAMPAÑAS', $subtitulo, $cuerpo);
     }
 }

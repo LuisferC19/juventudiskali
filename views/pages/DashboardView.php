@@ -56,9 +56,7 @@ $campanas_activas ??= [];
 // Helper para etiqueta "Demo"
 function demoBadge(bool $esDemo): string {
     if (!$esDemo) return '';
-    return '<span style="font-size:10px;background:rgba(232,160,32,0.18);color:#e8a020;
-                         border-radius:4px;padding:2px 7px;margin-left:8px;font-weight:600;
-                         letter-spacing:.5px;">DEMO</span>';
+  return '<span class="badge badge-amber">DEMO</span>';
 }
 ?>
 
@@ -69,23 +67,23 @@ function demoBadge(bool $esDemo): string {
   <div class="main">
     <?php require_once 'views/layouts/topbar.php'; ?>
 
-    <div class="content" style="padding:24px;">
+    <div class="content">
 
       <!-- ══ Bienvenida ══ -->
-      <div style="margin-bottom:28px;">
-        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;
-                   letter-spacing:-0.5px;color:var(--text,#e8eaf0);margin-bottom:4px;">
+      <div style="margin-bottom:1.1rem;">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;
+                   color:var(--text);margin-bottom:4px;">
           ¡Bienvenido, <?= htmlspecialchars($_SESSION['nombre'] ?? 'Administrador') ?>!
           <img src="<?= BASE_URL ?>/public/iconos/Saludar.png" alt="👋"
                style="width:20px;height:20px;vertical-align:middle;margin-left:4px;">
         </h2>
-        <p style="font-size:13px;color:var(--muted,#8b949e);">
+        <p style="font-size:12.5px;color:var(--muted);">
           <?= date('l, j \d\e F \d\e Y') ?> · Aquí está el resumen del sistema.
         </p>
       </div>
 
       <!-- ══ KPIs ══ -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:16px;margin-bottom:28px;">
+      <div class="kpi-grid dashboard-kpis">
 
         <div class="kpi">
           <div class="kpi-label">
@@ -159,7 +157,7 @@ function demoBadge(bool $esDemo): string {
       </div>
 
       <!-- ══ Acciones rápidas ══ -->
-      <div class="quick-actions" style="margin-bottom:28px;">
+      <div class="quick-actions" style="margin-bottom:1.1rem;">
         <a href="<?= BASE_URL ?>/index.php?pagina=donadores&accion=crear" class="qa-btn">
           <div class="qa-icon"><img src="<?= BASE_URL ?>/public/iconos/New_donador.png" alt="" style="width:18px;height:18px;"></div>
           <div class="qa-label">Nuevo donador</div>
@@ -183,11 +181,11 @@ function demoBadge(bool $esDemo): string {
       </div>
 
       <!-- ══ FILA 1: Barras donaciones + Estado donaciones ══ -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
+      <div class="dashboard-chart-row dashboard-chart-row-main">
 
         <!-- Barras: donaciones por mes -->
-        <div class="card" style="padding:24px;">
-          <div class="card-header" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div class="card" style="padding:1rem;">
+          <div class="card-header" style="margin-bottom:12px;">
             <h3 style="font-size:15px;font-weight:600;margin:0;">
               Donaciones por mes (MXN vs Especie)
               <?= demoBadge($gd_demo) ?>
@@ -200,8 +198,8 @@ function demoBadge(bool $esDemo): string {
         </div>
 
         <!-- Pastel: estado de donaciones -->
-        <div class="card" style="padding:24px;">
-          <div class="card-header" style="margin-bottom:16px;">
+        <div class="card" style="padding:1rem;">
+          <div class="card-header" style="margin-bottom:12px;">
             <h3 style="font-size:15px;font-weight:600;margin:0;">
               Estado de donaciones
               <?= demoBadge($ge_demo) ?>
@@ -217,10 +215,10 @@ function demoBadge(bool $esDemo): string {
       </div>
 
       <!-- ══ FILA 2: Tipo donación + Beneficiarios + Campañas + Actividad ══ -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+      <div class="dashboard-chart-row dashboard-chart-row-four">
 
         <!-- Donut: tipo de donación -->
-        <div class="card" style="padding:20px;">
+        <div class="card" style="padding:1rem;">
           <h3 style="font-size:14px;font-weight:600;margin:0 0 14px;">
             Tipo de donación
             <?= demoBadge($gt_demo) ?>
@@ -231,7 +229,7 @@ function demoBadge(bool $esDemo): string {
         </div>
 
         <!-- Donut: beneficiarios por estado -->
-        <div class="card" style="padding:20px;">
+        <div class="card" style="padding:1rem;">
           <h3 style="font-size:14px;font-weight:600;margin:0 0 14px;">
             Beneficiarios
             <?= demoBadge($gb_demo) ?>
@@ -242,7 +240,7 @@ function demoBadge(bool $esDemo): string {
         </div>
 
         <!-- Campañas activas -->
-        <div class="card" style="padding:20px;">
+        <div class="card" style="padding:1rem;">
           <h3 style="font-size:14px;font-weight:600;margin:0 0 14px;">Campañas activas</h3>
           <div class="progress-wrap">
             <?php
@@ -267,7 +265,7 @@ function demoBadge(bool $esDemo): string {
         </div>
 
         <!-- Actividad reciente -->
-        <div class="card" style="padding:20px;">
+        <div class="card" style="padding:1rem;">
           <h3 style="font-size:14px;font-weight:600;margin:0 0 14px;">Actividad reciente</h3>
           <?php
           $actividad = [
@@ -289,11 +287,11 @@ function demoBadge(bool $esDemo): string {
       </div>
 
       <!-- ══ FILA 3: Tipos de donador + Usuarios por rol ══ -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <div class="dashboard-chart-row dashboard-chart-row-two">
 
         <!-- Barras horiz: tipos de donador -->
-        <div class="card" style="padding:24px;">
-          <div class="card-header" style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <div class="card" style="padding:1rem;">
+          <div class="card-header" style="margin-bottom:12px;">
             <h3 style="font-size:15px;font-weight:600;margin:0;">
               <img src="<?= BASE_URL ?>/public/iconos/patrocinador.png" alt=""
                    style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">
@@ -307,8 +305,8 @@ function demoBadge(bool $esDemo): string {
         </div>
 
         <!-- Barras horiz: usuarios por rol -->
-        <div class="card" style="padding:24px;">
-          <div class="card-header" style="margin-bottom:16px;">
+        <div class="card" style="padding:1rem;">
+          <div class="card-header" style="margin-bottom:12px;">
             <h3 style="font-size:15px;font-weight:600;margin:0;">
               <img src="<?= BASE_URL ?>/public/iconos/Usuarios.png" alt=""
                    style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">
@@ -333,14 +331,14 @@ function demoBadge(bool $esDemo): string {
 (function () {
 
   /* ── Colores globales ── */
-  const gridColor = 'rgba(255,255,255,0.06)';
-  const textColor = '#8b949e';
-  const colVerde  = '#0aafa0';
-  const colAmber  = '#e8a020';
-  const colBlue   = '#3b6fd4';
-  const colRed    = '#c0392b';
-  const colPurple = '#9b59b6';
-  const colGray   = '#555e6e';
+  const gridColor = 'rgba(28,28,26,0.08)';
+  const textColor = '#6B6B67';
+  const colVerde  = '#1A7A5E';
+  const colAmber  = '#C68B0A';
+  const colBlue   = '#3B6FD4';
+  const colRed    = '#C0392B';
+  const colPurple = '#993556';
+  const colGray   = '#6B6B67';
 
   Chart.defaults.color       = textColor;
   Chart.defaults.font.family = "'DM Sans', sans-serif";
@@ -399,7 +397,7 @@ function demoBadge(bool $esDemo): string {
         data: datEstados,
         backgroundColor: colsEstados,
         borderWidth: 2,
-        borderColor: '#1c2430'
+        borderColor: '#FFFFFF'
       }]
     },
     options: {
@@ -432,7 +430,7 @@ function demoBadge(bool $esDemo): string {
         data: <?= $gt_data ?>,
         backgroundColor: [colBlue, colVerde],
         borderWidth: 2,
-        borderColor: '#1c2430'
+        borderColor: '#FFFFFF'
       }]
     },
     options: {
@@ -456,7 +454,7 @@ function demoBadge(bool $esDemo): string {
         data: <?= $gb_data ?>,
         backgroundColor: [colVerde, colAmber, colGray],
         borderWidth: 2,
-        borderColor: '#1c2430'
+        borderColor: '#FFFFFF'
       }]
     },
     options: {
@@ -541,4 +539,4 @@ function demoBadge(bool $esDemo): string {
 })();
 </script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';

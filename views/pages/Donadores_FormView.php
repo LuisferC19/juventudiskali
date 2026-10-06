@@ -263,4 +263,4 @@ function toggleDonadorType() {
 document.addEventListener('DOMContentLoaded', toggleDonadorType);
 </script>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php require_once 'views/layouts/footer.php';
